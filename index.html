@@ -7,673 +7,484 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Compras">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>🛒 Minhas Compras</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  :root {
-    --bg: #1a1625;
-    --surface: #241e35;
-    --surface2: #2e2845;
-    --border: rgba(255,255,255,0.07);
-    --text: #f0ecff;
-    --muted: #8b85a8;
-    --faint: #4a4468;
-    --accent: #a78bfa;
-    --accent-dim: rgba(167,139,250,0.15);
+:root {
+  --bg: #1a1625; --surface: #241e35; --surface2: #2e2845;
+  --border: rgba(255,255,255,0.07); --text: #f0ecff;
+  --muted: #8b85a8; --faint: #4a4468;
+  --accent: #a78bfa; --accent-dim: rgba(167,139,250,0.15);
+  --radius: 16px; --radius-sm: 10px;
+}
 
-    --cat-frutas:    #4ade80; --cat-frutas-bg:    rgba(74,222,128,0.12);
-    --cat-verduras:  #a3e635; --cat-verduras-bg:  rgba(163,230,53,0.12);
-    --cat-carnes:    #f87171; --cat-carnes-bg:    rgba(248,113,113,0.12);
-    --cat-laticinios:#60a5fa; --cat-laticinios-bg:rgba(96,165,250,0.12);
-    --cat-mercearia: #f59e0b; --cat-mercearia-bg: rgba(245,158,11,0.12);
-    --cat-limpeza:   #c084fc; --cat-limpeza-bg:   rgba(192,132,252,0.12);
-    --cat-higiene:   #34d399; --cat-higiene-bg:   rgba(52,211,153,0.12);
-    --cat-bebidas:   #fbbf24; --cat-bebidas-bg:   rgba(251,191,36,0.12);
-    --cat-padaria:   #fb923c; --cat-padaria-bg:   rgba(251,146,60,0.12);
-    --cat-outros:    #94a3b8; --cat-outros-bg:    rgba(148,163,184,0.12);
-    --radius: 16px;
-    --radius-sm: 10px;
-  }
+html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-serif; color: var(--text); overflow: hidden; }
 
-  html, body {
-    height: 100%;
-    background: var(--bg);
-    font-family: 'Nunito', sans-serif;
-    color: var(--text);
-    overflow: hidden;
-  }
+#app { display: flex; flex-direction: column; height: 100dvh; max-width: 480px; margin: 0 auto; position: relative; }
 
-  #app {
-    display: flex;
-    flex-direction: column;
-    height: 100dvh;
-    max-width: 480px;
-    margin: 0 auto;
-    position: relative;
-  }
+/* ── View switcher ── */
+.view { display: none; flex-direction: column; flex: 1; min-height: 0; }
+.view.active { display: flex; }
 
-  /* ── Header ── */
-  .header {
-    padding: 20px 20px 0;
-    flex-shrink: 0;
-  }
-  .header-top {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-  .header-title {
-    font-size: 26px;
-    font-weight: 900;
-    letter-spacing: -0.5px;
-    line-height: 1.1;
-  }
-  .header-title span { color: var(--accent); }
-  .header-sub {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 600;
-    margin-top: 2px;
-  }
-  .btn-clear {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 8px 10px;
-    color: var(--muted);
-    font-size: 18px;
-    cursor: pointer;
-    transition: all .2s;
-    line-height: 1;
-  }
-  .btn-clear:hover { color: #f87171; border-color: rgba(248,113,113,0.3); }
+/* ── Bottom nav ── */
+.bottom-nav {
+  display: flex; background: var(--surface); border-top: 1px solid var(--border);
+  flex-shrink: 0; z-index: 50;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 4px 12px; background: none; border: none; cursor: pointer;
+  color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700;
+  transition: color .15s;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-icon { font-size: 20px; line-height: 1; }
 
-  /* ── Progress bar ── */
-  .progress-wrap {
-    margin: 14px 20px 0;
-    flex-shrink: 0;
-  }
-  .progress-bar {
-    height: 6px;
-    background: var(--surface2);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), #7c3aed);
-    border-radius: 99px;
-    transition: width .4s cubic-bezier(.4,0,.2,1);
-    width: 0%;
-  }
+/* ── Header ── */
+.header { padding: 20px 20px 0; flex-shrink: 0; }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 4px; }
+.header-title { font-size: 26px; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; }
+.header-title span { color: var(--accent); }
+.header-sub { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: 2px; }
+.header-actions { display: flex; gap: 6px; }
+.btn-icon {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 10px; color: var(--muted); font-size: 18px; cursor: pointer;
+  transition: all .2s; line-height: 1;
+}
+.btn-icon:hover { color: var(--accent); border-color: var(--accent-dim); }
+.btn-icon.danger:hover { color: #f87171; border-color: rgba(248,113,113,0.3); }
 
-  /* ── Filtros ── */
-  .filters {
-    display: flex;
-    gap: 8px;
-    padding: 14px 20px 0;
-    overflow-x: auto;
-    flex-shrink: 0;
-    scrollbar-width: none;
-  }
-  .filters::-webkit-scrollbar { display: none; }
-  .chip {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
-    border-radius: 99px;
-    border: 1.5px solid var(--border);
-    background: var(--surface);
-    color: var(--muted);
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: all .18s;
-    flex-shrink: 0;
-  }
-  .chip .chip-icon { font-size: 13px; }
-  .chip.active {
-    background: var(--active-bg, var(--accent-dim));
-    border-color: var(--active-color, var(--accent));
-    color: var(--active-color, var(--accent));
-  }
+/* ── Progress bar ── */
+.progress-wrap { margin: 14px 20px 0; flex-shrink: 0; }
+.progress-bar { height: 6px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), #7c3aed);
+  border-radius: 99px; transition: width .4s cubic-bezier(.4,0,.2,1); width: 0%;
+}
 
-  /* ── Toggle ── */
-  .toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 10px 20px 4px;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .toggle-label { font-size: 12px; color: var(--muted); font-weight: 600; }
-  .toggle {
-    width: 34px; height: 18px;
-    background: var(--surface2);
-    border-radius: 99px;
-    cursor: pointer;
-    position: relative;
-    transition: background .2s;
-    border: 1px solid var(--border);
-  }
-  .toggle.on { background: var(--accent); border-color: var(--accent); }
-  .toggle::after {
-    content: '';
-    position: absolute;
-    top: 2px; left: 2px;
-    width: 12px; height: 12px;
-    background: #fff;
-    border-radius: 50%;
-    transition: transform .2s;
-  }
-  .toggle.on::after { transform: translateX(16px); }
+/* ── Listas tabs ── */
+.lists-bar {
+  display: flex; gap: 8px; padding: 14px 16px 0;
+  overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
+}
+.lists-bar::-webkit-scrollbar { display: none; }
+.list-tab {
+  display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+  border-radius: 99px; border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap;
+  cursor: pointer; transition: all .18s; flex-shrink: 0;
+}
+.list-tab.active {
+  background: var(--accent-dim); border-color: var(--accent); color: var(--accent);
+}
+.list-tab-add {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 99px;
+  border: 1.5px dashed var(--faint); background: none;
+  color: var(--faint); font-size: 18px; cursor: pointer; flex-shrink: 0;
+  transition: all .18s;
+}
+.list-tab-add:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* ── Lista ── */
-  .list-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: 8px 16px 120px;
-    scrollbar-width: none;
-  }
-  .list-scroll::-webkit-scrollbar { display: none; }
+/* ── Filtros ── */
+.filters {
+  display: flex; gap: 8px; padding: 10px 16px 0;
+  overflow-x: auto; flex-shrink: 0; scrollbar-width: none;
+}
+.filters::-webkit-scrollbar { display: none; }
+.chip {
+  display: flex; align-items: center; gap: 5px; padding: 6px 12px;
+  border-radius: 99px; border: 1.5px solid var(--border); background: var(--surface);
+  color: var(--muted); font-size: 12px; font-weight: 700; white-space: nowrap;
+  cursor: pointer; transition: all .18s; flex-shrink: 0;
+}
+.chip .chip-icon { font-size: 13px; }
+.chip.active { background: var(--active-bg,var(--accent-dim)); border-color: var(--active-color,var(--accent)); color: var(--active-color,var(--accent)); }
 
-  .cat-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 14px 4px 8px;
-  }
-  .cat-icon-wrap {
-    width: 26px; height: 26px;
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 14px;
-  }
-  .cat-name {
-    font-size: 12px;
-    font-weight: 800;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    flex: 1;
-  }
-  .cat-badge {
-    font-size: 10px;
-    font-weight: 800;
-    padding: 2px 7px;
-    border-radius: 99px;
-  }
+/* ── Toggle row ── */
+.toggle-row { display: flex; align-items: center; padding: 8px 16px 4px; gap: 8px; flex-shrink: 0; }
+.toggle-label { font-size: 12px; color: var(--muted); font-weight: 600; }
+.toggle {
+  width: 34px; height: 18px; background: var(--surface2); border-radius: 99px;
+  cursor: pointer; position: relative; transition: background .2s; border: 1px solid var(--border);
+}
+.toggle.on { background: var(--accent); border-color: var(--accent); }
+.toggle::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px;
+  background: #fff; border-radius: 50%; transition: transform .2s;
+}
+.toggle.on::after { transform: translateX(16px); }
 
-  /* ── Item ── */
-  .item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 13px 14px;
-    margin-bottom: 7px;
-    cursor: pointer;
-    transition: all .2s;
-    position: relative;
-    overflow: hidden;
-    touch-action: pan-y;
-    user-select: none;
-  }
-  .item.swiping { transition: none; }
-  .item.checked {
-    opacity: 0.5;
-    background: var(--surface);
-  }
-  .item.checked .item-name {
-    text-decoration: line-through;
-    color: var(--muted);
-  }
-  .item:active { transform: scale(0.98); }
+/* ── Busca ── */
+.search-wrap { padding: 8px 16px 0; flex-shrink: 0; }
+.search-box {
+  display: flex; align-items: center; gap: 8px; background: var(--surface);
+  border: 1.5px solid var(--border); border-radius: 99px; padding: 8px 14px; transition: border-color .2s;
+}
+.search-box:focus-within { border-color: var(--accent); }
+.search-icon { font-size: 15px; flex-shrink: 0; }
+.search-input { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 600; }
+.search-input::placeholder { color: var(--faint); }
+.search-clear { background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0; line-height: 1; display: none; }
+.search-clear.show { display: block; }
 
-  .item-delete-bg {
-    position: absolute;
-    right: 0; top: 0; bottom: 0;
-    width: 80px;
-    background: rgba(248,113,113,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-    opacity: 0;
-    transition: opacity .2s;
-  }
+/* ── Lista ── */
+.list-scroll { flex: 1; overflow-y: auto; padding: 8px 16px 20px; scrollbar-width: none; }
+.list-scroll::-webkit-scrollbar { display: none; }
 
-  .checkbox {
-    width: 22px; height: 22px;
-    border-radius: 7px;
-    border: 2px solid var(--faint);
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .2s;
-    font-size: 12px;
-  }
-  .item.checked .checkbox {
-    border-color: transparent;
-  }
+.cat-header { display: flex; align-items: center; gap: 8px; padding: 14px 4px 8px; }
+.cat-icon-wrap { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.cat-name { font-size: 12px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; flex: 1; }
+.cat-badge { font-size: 10px; font-weight: 800; padding: 2px 7px; border-radius: 99px; }
 
-  .item-body { flex: 1; min-width: 0; }
-  .item-name {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .item-qty {
-    font-size: 11px;
-    color: var(--muted);
-    font-weight: 600;
-    margin-top: 1px;
-  }
+/* ── Item ── */
+.item {
+  display: flex; align-items: center; gap: 10px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 12px; margin-bottom: 7px; cursor: pointer; transition: all .2s;
+  position: relative; overflow: hidden; touch-action: pan-y; user-select: none;
+}
+.item.swiping { transition: none; }
+.item.checked { opacity: 0.5; }
+.item.checked .item-name { text-decoration: line-through; color: var(--muted); }
+.item:active { transform: scale(0.98); }
 
-  .item-cat-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+.item-delete-bg {
+  position: absolute; right: 0; top: 0; bottom: 0; width: 80px;
+  background: rgba(248,113,113,0.15); display: flex; align-items: center; justify-content: center;
+  font-size: 18px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; opacity: 0; transition: opacity .2s;
+}
+.checkbox {
+  width: 22px; height: 22px; border-radius: 7px; border: 2px solid var(--faint);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all .2s; font-size: 12px;
+}
+.item.checked .checkbox { border-color: transparent; }
+.item-body { flex: 1; min-width: 0; }
+.item-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-meta { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 1px; }
+.item-price { font-size: 12px; font-weight: 800; color: var(--accent); flex-shrink: 0; }
+.btn-edit-item { background: none; border: none; color: var(--faint); font-size: 15px; cursor: pointer; padding: 4px; border-radius: 6px; transition: color .15s; flex-shrink: 0; line-height: 1; }
+.btn-edit-item:active { color: var(--accent); }
+.item-cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
-  /* ── Empty state ── */
-  .empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 10px;
-    padding-bottom: 60px;
-  }
-  .empty-emoji { font-size: 56px; }
-  .empty-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--text);
-  }
-  .empty-sub { font-size: 13px; color: var(--muted); font-weight: 600; text-align: center; }
+/* ── Total footer ── */
+.total-footer {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; background: var(--surface); border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.total-label { font-size: 13px; color: var(--muted); font-weight: 700; }
+.total-value { font-size: 20px; font-weight: 900; color: var(--accent); }
+.total-actions { display: flex; gap: 8px; align-items: center; }
 
-  /* ── FAB ── */
-  .fab {
-    position: absolute;
-    bottom: 24px;
-    right: 20px;
-    width: 56px; height: 56px;
-    background: var(--accent);
-    border-radius: 18px;
-    border: none;
-    color: #fff;
-    font-size: 26px;
-    font-weight: 300;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 8px 24px rgba(167,139,250,0.35);
-    transition: all .2s;
-    z-index: 10;
-  }
-  .fab:active { transform: scale(0.92); box-shadow: 0 4px 12px rgba(167,139,250,0.2); }
+/* ── Modo mercado ── */
+#viewMercado {
+  background: var(--bg);
+}
+.mercado-header {
+  padding: 20px 20px 12px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+}
+.mercado-title { font-size: 20px; font-weight: 900; flex: 1; }
+.mercado-sub { font-size: 13px; color: var(--muted); font-weight: 600; }
+.btn-exit { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer; }
+.mercado-scroll { flex: 1; overflow-y: auto; padding: 12px 16px 100px; scrollbar-width: none; }
+.mercado-scroll::-webkit-scrollbar { display: none; }
+.mercado-item {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px;
+  padding: 18px 20px; margin-bottom: 10px; cursor: pointer; transition: all .2s;
+}
+.mercado-item.checked { opacity: 0.4; }
+.mercado-item.checked .mercado-item-name { text-decoration: line-through; color: var(--muted); }
+.mercado-checkbox {
+  width: 32px; height: 32px; border-radius: 10px; border: 2.5px solid var(--faint);
+  flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+  font-size: 18px; transition: all .2s;
+}
+.mercado-item-body { flex: 1; }
+.mercado-item-name { font-size: 20px; font-weight: 800; line-height: 1.2; }
+.mercado-item-meta { font-size: 14px; color: var(--muted); font-weight: 600; margin-top: 3px; }
+.mercado-item-cat { font-size: 22px; }
+.mercado-progress {
+  margin: 0 16px 12px; padding: 12px 16px; background: var(--surface);
+  border-radius: 12px; display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+}
+.mercado-pct { font-size: 24px; font-weight: 900; color: var(--accent); min-width: 52px; }
+.mercado-bar-wrap { flex: 1; }
+.mercado-bar { height: 8px; background: var(--surface2); border-radius: 99px; overflow: hidden; }
+.mercado-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s; }
+.mercado-bar-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 4px; }
+.mercado-tts-btn {
+  position: fixed; bottom: 30px; right: 20px; left: 20px; max-width: 448px;
+  margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--accent); border: none; border-radius: 16px; padding: 16px;
+  color: #fff; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800;
+  cursor: pointer; transition: all .2s; z-index: 20;
+}
+.mercado-tts-btn:active { transform: scale(0.97); }
+.mercado-tts-btn.speaking { background: #f87171; }
 
-  /* ── Bottom sheet ── */
-  .overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .25s;
-    backdrop-filter: blur(2px);
-  }
-  .overlay.show { opacity: 1; pointer-events: all; }
+/* ── Empty state ── */
+.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; gap: 10px; padding-bottom: 60px; }
+.empty-emoji { font-size: 56px; }
+.empty-title { font-size: 18px; font-weight: 800; color: var(--text); }
+.empty-sub { font-size: 13px; color: var(--muted); font-weight: 600; text-align: center; }
 
-  .sheet {
-    position: fixed;
-    bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
-    width: 100%; max-width: 480px;
-    background: var(--surface);
-    border-radius: 24px 24px 0 0;
-    padding: 0 20px 0;
-    z-index: 101;
-    transition: transform .3s cubic-bezier(.4,0,.2,1);
-    max-height: 92dvh;
-    overflow-y: auto;
-  }
-  .sheet.show { transform: translateX(-50%) translateY(0); }
+/* ── FAB ── */
+.fab {
+  position: absolute; bottom: 80px; right: 20px; width: 56px; height: 56px;
+  background: var(--accent); border-radius: 18px; border: none; color: #fff;
+  font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 8px 24px rgba(167,139,250,0.35); transition: all .2s; z-index: 10;
+}
+.fab:active { transform: scale(0.92); }
 
-  .sheet-handle {
-    width: 36px; height: 4px;
-    background: var(--faint);
-    border-radius: 99px;
-    margin: 12px auto 20px;
-  }
-  .sheet-title {
-    font-size: 20px;
-    font-weight: 900;
-    margin-bottom: 20px;
-  }
+/* ── Sheet ── */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; opacity: 0; pointer-events: none; transition: opacity .25s; backdrop-filter: blur(2px); }
+.overlay.show { opacity: 1; pointer-events: all; }
+.sheet {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
+  width: 100%; max-width: 480px; background: var(--surface); border-radius: 24px 24px 0 0;
+  padding: 0 20px; z-index: 101; transition: transform .3s cubic-bezier(.4,0,.2,1);
+  max-height: 92dvh; overflow-y: auto;
+}
+.sheet.show { transform: translateX(-50%) translateY(0); }
+.sheet-handle { width: 36px; height: 4px; background: var(--faint); border-radius: 99px; margin: 12px auto 20px; }
+.sheet-title { font-size: 20px; font-weight: 900; margin-bottom: 20px; }
+.field-label { font-size: 12px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 7px; }
 
-  .field-label {
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 7px;
-  }
+.input {
+  width: 100%; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 12px 14px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 15px;
+  font-weight: 600; outline: none; transition: border-color .2s; margin-bottom: 18px;
+}
+.input:focus { border-color: var(--accent); }
+.input::placeholder { color: var(--faint); }
 
-  .input {
-    width: 100%;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    outline: none;
-    transition: border-color .2s;
-    margin-bottom: 18px;
-  }
-  .input:focus { border-color: var(--accent); }
-  .input::placeholder { color: var(--faint); }
+/* Linha quantidade + unidade */
+.qty-unit-row { display: flex; gap: 10px; margin-bottom: 18px; }
+.qty-row {
+  display: flex; align-items: center; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; flex: 1;
+}
+.qty-btn { width: 40px; height: 44px; background: none; border: none; color: var(--accent); font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+.qty-btn:active { background: var(--accent-dim); }
+.qty-num { flex: 1; text-align: center; font-size: 16px; font-weight: 800; color: var(--text); }
+.unit-select {
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  padding: 0 12px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 14px;
+  font-weight: 700; outline: none; cursor: pointer; min-width: 80px;
+}
 
-  /* Quantidade */
-  .qty-row {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    background: var(--bg);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-    margin-bottom: 18px;
-  }
-  .qty-btn {
-    width: 44px; height: 44px;
-    background: none;
-    border: none;
-    color: var(--accent);
-    font-size: 22px;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: background .15s;
-    font-weight: 900;
-  }
-  .qty-btn:active { background: var(--accent-dim); }
-  .qty-num {
-    flex: 1;
-    text-align: center;
-    font-size: 16px;
-    font-weight: 800;
-    color: var(--text);
-  }
+/* Preço */
+.price-row { display: flex; gap: 10px; margin-bottom: 18px; align-items: flex-end; }
+.price-input-wrap { flex: 1; }
+.price-compare { flex: 1; }
+.input-prefix-wrap { display: flex; align-items: center; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+.input-prefix { padding: 12px 10px 12px 14px; font-size: 14px; font-weight: 800; color: var(--muted); }
+.input-inline { flex: 1; background: none; border: none; outline: none; padding: 12px 14px 12px 0; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; }
+.input-inline::placeholder { color: var(--faint); }
+.price-per { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 4px; text-align: center; }
 
-  /* Grid de categorias */
-  .cat-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    margin-bottom: 24px;
-  }
-  .cat-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    padding: 10px 6px;
-    border-radius: var(--radius-sm);
-    border: 1.5px solid var(--border);
-    background: var(--bg);
-    cursor: pointer;
-    transition: all .18s;
-  }
-  .cat-btn.selected {
-    border-color: var(--sel-color);
-    background: var(--sel-bg);
-  }
-  .cat-btn-icon { font-size: 20px; }
-  .cat-btn-label {
-    font-size: 10px;
-    font-weight: 800;
-    color: var(--muted);
-    text-align: center;
-    line-height: 1.2;
-  }
-  .cat-btn.selected .cat-btn-label { color: var(--sel-color); }
+/* Frequentes */
+.frequentes-wrap { margin-bottom: 16px; }
+.frequentes-title { font-size: 11px; color: var(--muted); font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.frequentes-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.freq-chip {
+  padding: 5px 10px; border-radius: 99px; background: var(--bg); border: 1px solid var(--border);
+  color: var(--muted); font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s;
+}
+.freq-chip:active { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
-  .btn-add {
-    width: 100%;
-    background: var(--accent);
-    border: none;
-    border-radius: var(--radius-sm);
-    padding: 15px;
-    color: #fff;
-    font-family: 'Nunito', sans-serif;
-    font-size: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all .2s;
-    margin-bottom: 32px;
-  }
-  .btn-add:active { transform: scale(0.97); opacity: 0.9; }
+/* Cat grid */
+.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 24px; }
+.cat-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 6px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; transition: all .18s; }
+.cat-btn.selected { border-color: var(--sel-color); background: var(--sel-bg); }
+.cat-btn-icon { font-size: 20px; }
+.cat-btn-label { font-size: 10px; font-weight: 800; color: var(--muted); text-align: center; line-height: 1.2; }
+.cat-btn.selected .cat-btn-label { color: var(--sel-color); }
 
-  /* ── Toast ── */
-  .toast {
-    position: fixed;
-    bottom: 100px;
-    left: 50%; transform: translateX(-50%) translateY(20px);
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 10px 18px;
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--text);
-    z-index: 200;
-    opacity: 0;
-    transition: all .3s;
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.btn-add { width: 100%; background: var(--accent); border: none; border-radius: var(--radius-sm); padding: 15px; color: #fff; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: all .2s; margin-bottom: 32px; }
+.btn-add:active { transform: scale(0.97); opacity: 0.9; }
 
-  /* ── Confirm dialog ── */
-  .confirm {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 300;
-    background: rgba(0,0,0,0.7);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity .2s;
-    padding: 20px;
-  }
-  .confirm.show { opacity: 1; pointer-events: all; }
-  .confirm-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px;
-    max-width: 320px;
-    width: 100%;
-    transform: scale(0.92);
-    transition: transform .2s;
-  }
-  .confirm.show .confirm-box { transform: scale(1); }
-  .confirm-title { font-size: 17px; font-weight: 900; margin-bottom: 8px; }
-  .confirm-sub { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 20px; }
-  .confirm-actions { display: flex; gap: 10px; }
-  .btn-cancel {
-    flex: 1; padding: 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--muted);
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px; font-weight: 800;
-    cursor: pointer;
-  }
-  .btn-danger {
-    flex: 1; padding: 12px;
-    background: rgba(248,113,113,0.15);
-    border: 1px solid rgba(248,113,113,0.3);
-    border-radius: var(--radius-sm);
-    color: #f87171;
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px; font-weight: 800;
-    cursor: pointer;
-  }
+/* ── Toast ── */
+.toast {
+  position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 99px;
+  padding: 10px 18px; font-size: 13px; font-weight: 700; color: var(--text);
+  z-index: 500; opacity: 0; transition: all .3s; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* ── Busca ── */
-  .search-wrap {
-    padding: 10px 16px 0;
-    flex-shrink: 0;
-  }
-  .search-box {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 99px;
-    padding: 8px 14px;
-    transition: border-color .2s;
-  }
-  .search-box:focus-within { border-color: var(--accent); }
-  .search-icon { font-size: 15px; flex-shrink: 0; }
-  .search-input {
-    flex: 1;
-    background: none;
-    border: none;
-    outline: none;
-    color: var(--text);
-    font-family: 'Nunito', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-  }
-  .search-input::placeholder { color: var(--faint); }
-  .search-clear {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 16px;
-    cursor: pointer;
-    padding: 0;
-    line-height: 1;
-    display: none;
-  }
-  .search-clear.show { display: block; }
+/* ── Confirm ── */
+.confirm { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 300; background: rgba(0,0,0,0.7); opacity: 0; pointer-events: none; transition: opacity .2s; padding: 20px; }
+.confirm.show { opacity: 1; pointer-events: all; }
+.confirm-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 24px; max-width: 320px; width: 100%; transform: scale(0.92); transition: transform .2s; }
+.confirm.show .confirm-box { transform: scale(1); }
+.confirm-title { font-size: 17px; font-weight: 900; margin-bottom: 8px; }
+.confirm-sub { font-size: 13px; color: var(--muted); font-weight: 600; margin-bottom: 20px; }
+.confirm-actions { display: flex; gap: 10px; }
+.btn-cancel { flex: 1; padding: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; }
+.btn-danger { flex: 1; padding: 12px; background: rgba(248,113,113,0.15); border: 1px solid rgba(248,113,113,0.3); border-radius: var(--radius-sm); color: #f87171; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 800; cursor: pointer; }
 
-  /* ── Botão editar no item ── */
-  .btn-edit-item {
-    background: none;
-    border: none;
-    color: var(--faint);
-    font-size: 15px;
-    cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
-    transition: color .15s;
-    flex-shrink: 0;
-    line-height: 1;
-  }
-  .btn-edit-item:active { color: var(--accent); }
+/* ── Confete ── */
+.confetti-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+.confetti-piece { position: absolute; width: 10px; height: 10px; border-radius: 2px; top: -20px; animation: confettiFall linear forwards; }
+@keyframes confettiFall { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 80% { opacity:1; } 100% { transform: translateY(110vh) rotate(720deg); opacity:0; } }
 
-  /* ── Confete ── */
-  .confetti-wrap {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 999;
-    overflow: hidden;
-  }
-  .confetti-piece {
-    position: absolute;
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    top: -20px;
-    animation: confettiFall linear forwards;
-  }
-  @keyframes confettiFall {
-    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
-    80%  { opacity: 1; }
-    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
-  }
+/* ── Nova lista dialog ── */
+.new-list-dialog { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 400; background: rgba(0,0,0,0.7); opacity: 0; pointer-events: none; transition: opacity .2s; padding: 20px; }
+.new-list-dialog.show { opacity: 1; pointer-events: all; }
+.new-list-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 20px; padding: 24px; max-width: 320px; width: 100%; }
+.new-list-title { font-size: 17px; font-weight: 900; margin-bottom: 16px; }
+.new-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+.list-preset { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 8px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); cursor: pointer; transition: all .18s; }
+.list-preset:hover { border-color: var(--accent); background: var(--accent-dim); }
+.list-preset-icon { font-size: 24px; }
+.list-preset-label { font-size: 11px; font-weight: 800; color: var(--muted); }
 
-  @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition: none !important; animation: none !important; }
-  }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <div class="header">
-    <div class="header-top">
-      <div>
-        <div class="header-title">Minhas <span>compras</span> 🛒</div>
-        <div class="header-sub" id="subtitle">carregando...</div>
+
+  <!-- ── View: Lista principal ── -->
+  <div class="view active" id="viewLista">
+    <div class="header">
+      <div class="header-top">
+        <div>
+          <div class="header-title">Minhas <span>compras</span> 🛒</div>
+          <div class="header-sub" id="subtitle">carregando...</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn-icon" id="btnShare" title="Compartilhar">📤</button>
+          <button class="btn-icon danger" id="btnClear" title="Limpar marcados">🧹</button>
+        </div>
       </div>
-      <button class="btn-clear" id="btnClear" title="Limpar marcados">🧹</button>
     </div>
-  </div>
 
-  <div class="progress-wrap">
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  </div>
-
-  <div class="filters" id="filters"></div>
-
-  <div class="search-wrap">
-    <div class="search-box">
-      <span class="search-icon">🔍</span>
-      <input class="search-input" id="searchInput" type="text" placeholder="Buscar item...">
-      <button class="search-clear" id="searchClear">✕</button>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
     </div>
+
+    <div class="lists-bar" id="listsBar"></div>
+
+    <div class="filters" id="filters"></div>
+
+    <div class="search-wrap">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" type="text" placeholder="Buscar item...">
+        <button class="search-clear" id="searchClear">✕</button>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <span class="toggle-label">Ocultar marcados</span>
+      <div class="toggle" id="toggleHide"></div>
+    </div>
+
+    <div class="list-scroll" id="listScroll"></div>
+
+    <div class="total-footer" id="totalFooter" style="display:none">
+      <div>
+        <div class="total-label">Total estimado</div>
+      </div>
+      <div class="total-value" id="totalValue">R$ 0,00</div>
+    </div>
+
+    <button class="fab" id="fab">+</button>
   </div>
 
-  <div class="toggle-row">
-    <span class="toggle-label">Ocultar marcados</span>
-    <div class="toggle" id="toggleHide"></div>
+  <!-- ── View: Modo Mercado ── -->
+  <div class="view" id="viewMercado">
+    <div class="mercado-header">
+      <div>
+        <div class="mercado-title">Modo mercado 🛒</div>
+        <div class="mercado-sub" id="mercadoSub">0 itens pendentes</div>
+      </div>
+      <button class="btn-exit" id="btnExitMercado">← Sair</button>
+    </div>
+    <div class="mercado-progress">
+      <div class="mercado-pct" id="mercadoPct">0%</div>
+      <div class="mercado-bar-wrap">
+        <div class="mercado-bar"><div class="mercado-bar-fill" id="mercadoBarFill" style="width:0%"></div></div>
+        <div class="mercado-bar-label" id="mercadoBarLabel">0 de 0 itens</div>
+      </div>
+    </div>
+    <div class="mercado-scroll" id="mercadoScroll"></div>
+    <button class="mercado-tts-btn" id="btnTTS">🔊 Ler itens pendentes</button>
   </div>
 
-  <div class="list-scroll" id="listScroll"></div>
-
-  <button class="fab" id="fab">+</button>
+  <!-- ── Bottom nav ── -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="navLista" data-view="viewLista">
+      <span class="nav-icon">📋</span>Lista
+    </button>
+    <button class="nav-btn" id="navMercado" data-view="viewMercado">
+      <span class="nav-icon">🛒</span>Mercado
+    </button>
+  </div>
 </div>
 
-<!-- Overlay + sheet -->
+<!-- Overlay + Sheet adicionar/editar -->
 <div class="overlay" id="overlay"></div>
 <div class="sheet" id="sheet">
   <div class="sheet-handle"></div>
-  <div class="sheet-title" id="sheetTitle">Novo item</div>
+  <div class="sheet-title" id="sheetTitle">Novo item ✨</div>
+
+  <div id="frequentesSection" class="frequentes-wrap" style="display:none">
+    <div class="frequentes-title">⚡ Adicionados frequentemente</div>
+    <div class="frequentes-chips" id="frequentesChips"></div>
+  </div>
 
   <div class="field-label">Nome do produto</div>
-  <input class="input" id="inputName" type="text" placeholder="ex: Leite integral, Sabão em pó...">
+  <input class="input" id="inputName" type="text" placeholder="ex: Leite integral, Arroz 5kg...">
 
-  <div class="field-label">Quantidade</div>
-  <div class="qty-row">
-    <button class="qty-btn" id="qtyMinus">−</button>
-    <div class="qty-num" id="qtyNum">1</div>
-    <button class="qty-btn" id="qtyPlus">+</button>
+  <div class="field-label">Quantidade e unidade</div>
+  <div class="qty-unit-row">
+    <div class="qty-row">
+      <button class="qty-btn" id="qtyMinus">−</button>
+      <div class="qty-num" id="qtyNum">1</div>
+      <button class="qty-btn" id="qtyPlus">+</button>
+    </div>
+    <select class="unit-select" id="unitSelect">
+      <option value="un">un</option>
+      <option value="kg">kg</option>
+      <option value="g">g</option>
+      <option value="L">L</option>
+      <option value="ml">ml</option>
+      <option value="cx">cx</option>
+      <option value="pct">pct</option>
+      <option value="dz">dz</option>
+    </select>
+  </div>
+
+  <div class="field-label">Preço (opcional)</div>
+  <div class="price-row">
+    <div class="price-input-wrap">
+      <div class="input-prefix-wrap">
+        <span class="input-prefix">R$</span>
+        <input class="input-inline" id="inputPrice" type="number" min="0" step="0.01" placeholder="0,00">
+      </div>
+    </div>
+    <div class="price-compare">
+      <div class="input-prefix-wrap">
+        <span class="input-prefix">R$/</span>
+        <input class="input-inline" id="inputUnit" type="number" min="0" step="0.01" placeholder="kg ou L">
+      </div>
+      <div class="price-per" id="pricePerLabel">comparar por kg/L</div>
+    </div>
   </div>
 
   <div class="field-label">Categoria</div>
@@ -688,7 +499,7 @@
 <!-- Confete -->
 <div class="confetti-wrap" id="confettiWrap"></div>
 
-<!-- Confirm -->
+<!-- Confirm limpar -->
 <div class="confirm" id="confirmDialog">
   <div class="confirm-box">
     <div class="confirm-title">Limpar lista?</div>
@@ -696,6 +507,19 @@
     <div class="confirm-actions">
       <button class="btn-cancel" id="confirmCancel">Cancelar</button>
       <button class="btn-danger" id="confirmOk">Limpar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Nova lista dialog -->
+<div class="new-list-dialog" id="newListDialog">
+  <div class="new-list-box">
+    <div class="new-list-title">Nova lista 📋</div>
+    <div class="new-list-grid" id="newListGrid"></div>
+    <input class="input" id="newListName" type="text" placeholder="Ou digite um nome..." style="margin-bottom:12px">
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="newListCancel">Cancelar</button>
+      <button class="btn-add" id="newListOk" style="margin:0;flex:1">Criar</button>
     </div>
   </div>
 </div>
@@ -714,7 +538,16 @@ const CATS = [
   { id: 'padaria',    label: 'Padaria',    icon: '🍞', color: '#fb923c' },
   { id: 'outros',     label: 'Outros',     icon: '🛍️', color: '#94a3b8' },
 ];
-const catMap = Object.fromEntries(CATS.map(c => [c.id, c]));
+
+const LIST_PRESETS = [
+  { id: 'mercado',  label: 'Mercado',  icon: '🛒' },
+  { id: 'farmacia', label: 'Farmácia', icon: '💊' },
+  { id: 'feira',    label: 'Feira',    icon: '🥕' },
+  { id: 'padaria',  label: 'Padaria',  icon: '🍞' },
+  { id: 'pet',      label: 'Pet',      icon: '🐾' },
+  { id: 'outros',   label: 'Outros',   icon: '📦' },
+];
+
 const hex2rgba = (hex, a) => {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
@@ -724,113 +557,107 @@ const hex2rgba = (hex, a) => {
 let db;
 function openDB() {
   return new Promise((res, rej) => {
-    const req = indexedDB.open('compras_db', 2);
+    const req = indexedDB.open('compras_db', 3);
     req.onupgradeneeded = e => {
       const d = e.target.result;
       if (!d.objectStoreNames.contains('items')) {
-        const store = d.createObjectStore('items', { keyPath: 'id', autoIncrement: true });
-        store.createIndex('category', 'category', { unique: false });
+        const s = d.createObjectStore('items', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('category', 'category', { unique: false });
+        s.createIndex('listId', 'listId', { unique: false });
+      }
+      if (!d.objectStoreNames.contains('lists')) {
+        d.createObjectStore('lists', { keyPath: 'id', autoIncrement: true });
       }
     };
     req.onsuccess = e => { db = e.target.result; res(db); };
     req.onerror = () => rej(req.error);
   });
 }
-function dbGetAll() {
-  return new Promise((res, rej) => {
-    const tx = db.transaction('items', 'readonly');
-    const req = tx.objectStore('items').getAll();
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-function dbAdd(item) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction('items', 'readwrite');
-    const req = tx.objectStore('items').add(item);
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-function dbPut(item) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction('items', 'readwrite');
-    const req = tx.objectStore('items').put(item);
-    req.onsuccess = () => res();
-    req.onerror = () => rej(req.error);
-  });
-}
-function dbDelete(id) {
-  return new Promise((res, rej) => {
-    const tx = db.transaction('items', 'readwrite');
-    const req = tx.objectStore('items').delete(id);
-    req.onsuccess = () => res();
-    req.onerror = () => rej(req.error);
-  });
-}
+const dbGetAll = (store) => new Promise((res,rej) => { const tx=db.transaction(store,'readonly'); const req=tx.objectStore(store).getAll(); req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error); });
+const dbAdd = (store, item) => new Promise((res,rej) => { const tx=db.transaction(store,'readwrite'); const req=tx.objectStore(store).add(item); req.onsuccess=()=>res(req.result); req.onerror=()=>rej(req.error); });
+const dbPut = (store, item) => new Promise((res,rej) => { const tx=db.transaction(store,'readwrite'); const req=tx.objectStore(store).put(item); req.onsuccess=()=>res(); req.onerror=()=>rej(req.error); });
+const dbDel = (store, id) => new Promise((res,rej) => { const tx=db.transaction(store,'readwrite'); const req=tx.objectStore(store).delete(id); req.onsuccess=()=>res(); req.onerror=()=>rej(req.error); });
 
 // ── State ───────────────────────────────────────────────────────────────────
 let items = [];
+let lists = [];
+let currentListId = null;
 let filterCat = null;
 let hideChecked = false;
 let searchQuery = '';
 let editingId = null;
 let sheetQty = 1;
+let sheetUnit = 'un';
 let sheetCat = 'outros';
 let lastPendingCount = -1;
+let ttsActive = false;
+
+// ── Frequentes ───────────────────────────────────────────────────────────────
+function getFrequentes() {
+  const freq = {};
+  items.forEach(i => { freq[i.name] = (freq[i.name]||0) + 1; });
+  return Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8).map(e=>e[0]);
+}
 
 // ── Render ──────────────────────────────────────────────────────────────────
 function render() {
-  const pending = items.filter(i => !i.checked).length;
-  const total = items.length;
-  const pct = total === 0 ? 0 : Math.round(((total - pending) / total) * 100);
+  const listItems = items.filter(i => i.listId === currentListId);
+  const pending = listItems.filter(i => !i.checked).length;
+  const total = listItems.length;
+  const pct = total === 0 ? 0 : Math.round(((total-pending)/total)*100);
 
   document.getElementById('subtitle').textContent =
-    total === 0 ? 'sua lista está vazia' :
+    total === 0 ? 'lista vazia — toque no + para começar' :
     pending === 0 ? '🎉 tudo comprado!' :
     `${pending} de ${total} itens pendentes`;
-  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressFill').style.width = pct+'%';
 
   if (total > 0 && pending === 0 && lastPendingCount > 0) launchConfetti();
   lastPendingCount = pending;
 
+  renderListsTabs();
   renderFilters();
   renderList();
+  renderTotal();
+  renderMercado();
+}
+
+function renderListsTabs() {
+  const bar = document.getElementById('listsBar');
+  let html = lists.map(l => `
+    <div class="list-tab ${l.id===currentListId?'active':''}" data-lid="${l.id}">
+      ${l.icon} ${escHtml(l.name)}
+    </div>`).join('');
+  html += `<button class="list-tab-add" id="btnAddList">+</button>`;
+  bar.innerHTML = html;
+  bar.querySelectorAll('.list-tab').forEach(t => {
+    t.addEventListener('click', () => { currentListId = Number(t.dataset.lid); filterCat = null; render(); });
+  });
+  document.getElementById('btnAddList').addEventListener('click', openNewListDialog);
 }
 
 function renderFilters() {
   const el = document.getElementById('filters');
+  const listItems = items.filter(i => i.listId === currentListId);
   const counts = {};
-  items.filter(i => !i.checked).forEach(i => {
-    counts[i.category] = (counts[i.category] || 0) + 1;
-  });
-
-  let html = `<div class="chip ${filterCat === null ? 'active' : ''}" data-cat="" style="--active-color:#a78bfa;--active-bg:rgba(167,139,250,0.15)">
-    <span class="chip-icon">🛒</span> Todas
-  </div>`;
-
+  listItems.filter(i => !i.checked).forEach(i => { counts[i.category]=(counts[i.category]||0)+1; });
+  let html = `<div class="chip ${filterCat===null?'active':''}" data-cat="" style="--active-color:#a78bfa;--active-bg:rgba(167,139,250,0.15)"><span class="chip-icon">🛒</span> Todas</div>`;
   CATS.forEach(cat => {
-    const c = counts[cat.id] || 0;
-    const active = filterCat === cat.id;
-    html += `<div class="chip ${active ? 'active' : ''}" data-cat="${cat.id}"
-      style="--active-color:${cat.color};--active-bg:${hex2rgba(cat.color,0.12)}">
-      <span class="chip-icon">${cat.icon}</span>${cat.label}${c > 0 ? ` <strong>${c}</strong>` : ''}
-    </div>`;
+    const c = counts[cat.id]||0;
+    const active = filterCat===cat.id;
+    html += `<div class="chip ${active?'active':''}" data-cat="${cat.id}" style="--active-color:${cat.color};--active-bg:${hex2rgba(cat.color,0.12)}"><span class="chip-icon">${cat.icon}</span>${cat.label}${c>0?` <strong>${c}</strong>`:''}</div>`;
   });
   el.innerHTML = html;
   el.querySelectorAll('.chip').forEach(chip => {
-    chip.addEventListener('click', () => {
-      const val = chip.dataset.cat;
-      filterCat = val === '' ? null : val;
-      render();
-    });
+    chip.addEventListener('click', () => { filterCat = chip.dataset.cat===''?null:chip.dataset.cat; render(); });
   });
 }
 
 function renderList() {
   const scroll = document.getElementById('listScroll');
   const q = searchQuery.trim().toLowerCase();
-  let visible = items.filter(item => {
+  const listItems = items.filter(i => i.listId === currentListId);
+  const visible = listItems.filter(item => {
     if (filterCat && item.category !== filterCat) return false;
     if (hideChecked && item.checked) return false;
     if (q && !item.name.toLowerCase().includes(q)) return false;
@@ -838,60 +665,39 @@ function renderList() {
   });
 
   if (visible.length === 0) {
-    if (items.length === 0) {
-      scroll.innerHTML = `<div class="empty">
-        <div class="empty-emoji">🛒</div>
-        <div class="empty-title">Lista vazia!</div>
-        <div class="empty-sub">Toque no + para adicionar<br>seus primeiros itens</div>
-      </div>`;
-    } else {
-      scroll.innerHTML = `<div class="empty">
-        <div class="empty-emoji">🔍</div>
-        <div class="empty-title">Nenhum item aqui</div>
-        <div class="empty-sub">Mude o filtro ou desative<br>"Ocultar marcados"</div>
-      </div>`;
-    }
+    scroll.innerHTML = listItems.length === 0
+      ? `<div class="empty"><div class="empty-emoji">🛒</div><div class="empty-title">Lista vazia!</div><div class="empty-sub">Toque no + para adicionar<br>seus primeiros itens</div></div>`
+      : `<div class="empty"><div class="empty-emoji">🔍</div><div class="empty-title">Nenhum item aqui</div><div class="empty-sub">Mude o filtro ou a busca</div></div>`;
     return;
   }
 
-  // Agrupa por categoria
   const groups = {};
   CATS.forEach(c => { groups[c.id] = []; });
-  visible.forEach(item => {
-    if (!groups[item.category]) groups[item.category] = [];
-    groups[item.category].push(item);
-  });
+  visible.forEach(item => { if (!groups[item.category]) groups[item.category]=[]; groups[item.category].push(item); });
 
   let html = '';
   CATS.forEach(cat => {
     const list = groups[cat.id];
     if (!list || list.length === 0) return;
-    list.sort((a, b) => a.checked - b.checked);
+    list.sort((a,b) => a.checked-b.checked);
     const pendingCat = list.filter(i => !i.checked).length;
-    const bg = hex2rgba(cat.color, 0.12);
-    const bgBadge = hex2rgba(cat.color, 0.15);
-
-    html += `<div class="cat-header">
-      <div class="cat-icon-wrap" style="background:${bg}">${cat.icon}</div>
-      <div class="cat-name" style="color:${cat.color}">${cat.label}</div>
-      <div class="cat-badge" style="background:${bgBadge};color:${cat.color}">${pendingCat}/${list.length}</div>
-    </div>`;
-
+    const bg = hex2rgba(cat.color,0.12);
+    const bgBadge = hex2rgba(cat.color,0.15);
+    html += `<div class="cat-header"><div class="cat-icon-wrap" style="background:${bg}">${cat.icon}</div><div class="cat-name" style="color:${cat.color}">${cat.label}</div><div class="cat-badge" style="background:${bgBadge};color:${cat.color}">${pendingCat}/${list.length}</div></div>`;
     list.forEach(item => {
       const checkedCls = item.checked ? 'checked' : '';
-      const checkContent = item.checked
-        ? `<span style="color:${cat.color}">✓</span>`
-        : '';
-      const checkStyle = item.checked
-        ? `background:${hex2rgba(cat.color,0.15)};border-color:${cat.color}`
-        : '';
+      const checkContent = item.checked ? `<span style="color:${cat.color}">✓</span>` : '';
+      const checkStyle = item.checked ? `background:${hex2rgba(cat.color,0.15)};border-color:${cat.color}` : '';
+      const meta = buildMeta(item);
+      const priceHtml = item.price ? `<div class="item-price">R$ ${Number(item.price).toFixed(2)}</div>` : '';
       html += `<div class="item ${checkedCls}" data-id="${item.id}">
         <div class="item-delete-bg">🗑️</div>
         <div class="checkbox" style="${checkStyle}">${checkContent}</div>
         <div class="item-body">
           <div class="item-name">${escHtml(item.name)}</div>
-          ${item.qty > 1 ? `<div class="item-qty">${item.qty} unidades</div>` : ''}
+          ${meta ? `<div class="item-meta">${meta}</div>` : ''}
         </div>
+        ${priceHtml}
         <button class="btn-edit-item" data-edit="${item.id}" title="Editar">✏️</button>
         <div class="item-cat-dot" style="background:${cat.color}"></div>
       </div>`;
@@ -900,135 +706,139 @@ function renderList() {
 
   scroll.innerHTML = html;
 
-  // Eventos dos itens
   scroll.querySelectorAll('.item').forEach(el => {
     const id = Number(el.dataset.id);
-
-    // Tap no item = toggle check (ignora clique no botão editar)
-    el.addEventListener('click', e => {
-      if (e.target.closest('.btn-edit-item')) return;
-      toggleItem(id);
-    });
-
-    // Botão editar visível
+    el.addEventListener('click', e => { if (e.target.closest('.btn-edit-item')) return; toggleItem(id); });
     const editBtn = el.querySelector('.btn-edit-item');
-    if (editBtn) {
-      editBtn.addEventListener('click', e => {
-        e.stopPropagation();
-        openEdit(id);
-      });
-    }
-
-    // Long press = editar (fallback)
+    if (editBtn) editBtn.addEventListener('click', e => { e.stopPropagation(); openEdit(id); });
     let pressTimer;
-    el.addEventListener('pointerdown', e => {
-      if (e.target.closest('.btn-edit-item')) return;
-      pressTimer = setTimeout(() => openEdit(id), 500);
-    });
+    el.addEventListener('pointerdown', e => { if (e.target.closest('.btn-edit-item')) return; pressTimer = setTimeout(()=>openEdit(id),500); });
     el.addEventListener('pointerup', () => clearTimeout(pressTimer));
     el.addEventListener('pointercancel', () => clearTimeout(pressTimer));
-
-    // Swipe esquerda = deletar
-    let startX = 0, currentX = 0, swiping = false;
-    el.addEventListener('touchstart', e => {
-      startX = e.touches[0].clientX;
-      swiping = false;
-    }, { passive: true });
+    let startX=0, currentX=0, swiping=false;
+    el.addEventListener('touchstart', e => { startX=e.touches[0].clientX; swiping=false; }, {passive:true});
     el.addEventListener('touchmove', e => {
-      currentX = e.touches[0].clientX;
-      const dx = currentX - startX;
-      if (dx < -10) {
-        swiping = true;
-        el.classList.add('swiping');
-        const move = Math.max(dx, -80);
-        el.style.transform = `translateX(${move}px)`;
-        const bg = el.querySelector('.item-delete-bg');
-        bg.style.opacity = Math.min((-dx) / 80, 1);
-      }
-    }, { passive: true });
+      currentX=e.touches[0].clientX; const dx=currentX-startX;
+      if (dx<-10) { swiping=true; el.classList.add('swiping'); el.style.transform=`translateX(${Math.max(dx,-80)}px)`; const bg=el.querySelector('.item-delete-bg'); bg.style.opacity=Math.min((-dx)/80,1); }
+    }, {passive:true});
     el.addEventListener('touchend', () => {
       el.classList.remove('swiping');
-      if (swiping && (currentX - startX) < -60) {
-        el.style.transform = 'translateX(-100%)';
-        el.style.opacity = '0';
-        el.style.transition = 'all .25s';
-        setTimeout(() => deleteItem(id), 200);
-      } else {
-        el.style.transform = '';
-        el.style.transition = '';
-        const bg = el.querySelector('.item-delete-bg');
-        if (bg) bg.style.opacity = '0';
-      }
+      if (swiping && (currentX-startX)<-60) { el.style.transform='translateX(-100%)'; el.style.opacity='0'; el.style.transition='all .25s'; setTimeout(()=>deleteItem(id),200); }
+      else { el.style.transform=''; el.style.transition=''; const bg=el.querySelector('.item-delete-bg'); if(bg)bg.style.opacity='0'; }
     });
   });
 }
 
-// ── Actions ─────────────────────────────────────────────────────────────────
+function buildMeta(item) {
+  const parts = [];
+  if (item.qty > 1 || item.unit !== 'un') parts.push(`${item.qty} ${item.unit||'un'}`);
+  else if (item.qty === 1 && item.unit === 'un') {}
+  if (item.unitPrice) parts.push(`R$ ${Number(item.unitPrice).toFixed(2)}/${item.unitLabel||'kg'}`);
+  return parts.join(' · ');
+}
+
+function renderTotal() {
+  const listItems = items.filter(i => i.listId === currentListId);
+  const withPrice = listItems.filter(i => i.price && !i.checked);
+  const footer = document.getElementById('totalFooter');
+  if (withPrice.length === 0) { footer.style.display='none'; return; }
+  const total = withPrice.reduce((s,i) => s + (Number(i.price)*Number(i.qty||1)), 0);
+  footer.style.display='flex';
+  document.getElementById('totalValue').textContent = 'R$ ' + total.toFixed(2).replace('.',',');
+}
+
+function renderMercado() {
+  const listItems = items.filter(i => i.listId === currentListId && !i.checked);
+  const total = items.filter(i => i.listId === currentListId).length;
+  const done = total - listItems.length;
+  const pct = total===0 ? 0 : Math.round((done/total)*100);
+  document.getElementById('mercadoSub').textContent = `${listItems.length} itens pendentes`;
+  document.getElementById('mercadoPct').textContent = pct+'%';
+  document.getElementById('mercadoBarFill').style.width = pct+'%';
+  document.getElementById('mercadoBarLabel').textContent = `${done} de ${total} itens`;
+
+  const scroll = document.getElementById('mercadoScroll');
+  const allListItems = items.filter(i => i.listId === currentListId);
+  if (allListItems.length === 0) { scroll.innerHTML = `<div class="empty"><div class="empty-emoji">🛒</div><div class="empty-title">Lista vazia</div><div class="empty-sub">Adicione itens na aba Lista</div></div>`; return; }
+  const sorted = [...allListItems].sort((a,b)=>a.checked-b.checked);
+  scroll.innerHTML = sorted.map(item => {
+    const cat = CATS.find(c=>c.id===item.category)||CATS[CATS.length-1];
+    const checkStyle = item.checked ? `background:${hex2rgba(cat.color,0.2)};border-color:${cat.color}` : '';
+    const checkContent = item.checked ? `<span style="color:${cat.color}">✓</span>` : '';
+    const meta = buildMeta(item);
+    return `<div class="mercado-item ${item.checked?'checked':''}" data-id="${item.id}">
+      <div class="mercado-checkbox" style="${checkStyle}">${checkContent}</div>
+      <div class="mercado-item-body">
+        <div class="mercado-item-name">${escHtml(item.name)}</div>
+        ${meta ? `<div class="mercado-item-meta">${meta}</div>` : ''}
+      </div>
+      <div class="mercado-item-cat">${cat.icon}</div>
+    </div>`;
+  }).join('');
+  scroll.querySelectorAll('.mercado-item').forEach(el => {
+    el.addEventListener('click', () => toggleItem(Number(el.dataset.id)));
+  });
+}
+
+// ── Actions ──────────────────────────────────────────────────────────────────
 async function toggleItem(id) {
-  const item = items.find(i => i.id === id);
-  if (!item) return;
+  const item = items.find(i=>i.id===id); if(!item) return;
   item.checked = !item.checked;
-  await dbPut(item);
+  await dbPut('items', item);
   render();
 }
-
 async function deleteItem(id) {
-  items = items.filter(i => i.id !== id);
-  await dbDelete(id);
-  render();
-  showToast('Item removido 🗑️');
+  items = items.filter(i=>i.id!==id); await dbDel('items',id); render(); showToast('Item removido 🗑️');
 }
-
 async function clearChecked() {
-  const toRemove = items.filter(i => i.checked).map(i => i.id);
-  for (const id of toRemove) await dbDelete(id);
-  items = items.filter(i => !i.checked);
-  render();
-  showToast(`${toRemove.length} itens removidos ✓`);
+  const toRemove = items.filter(i=>i.checked&&i.listId===currentListId).map(i=>i.id);
+  for (const id of toRemove) await dbDel('items',id);
+  items = items.filter(i=>!(i.checked&&i.listId===currentListId));
+  render(); showToast(`${toRemove.length} itens removidos ✓`);
 }
 
 // ── Sheet ────────────────────────────────────────────────────────────────────
 function buildCatGrid() {
   const grid = document.getElementById('catGrid');
-  grid.innerHTML = CATS.map(cat => `
-    <div class="cat-btn ${sheetCat === cat.id ? 'selected' : ''}" data-cat="${cat.id}"
-      style="--sel-color:${cat.color};--sel-bg:${hex2rgba(cat.color,0.12)}">
-      <div class="cat-btn-icon">${cat.icon}</div>
-      <div class="cat-btn-label">${cat.label}</div>
-    </div>
-  `).join('');
-  grid.querySelectorAll('.cat-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      sheetCat = btn.dataset.cat;
-      buildCatGrid();
-    });
-  });
+  grid.innerHTML = CATS.map(cat => `<div class="cat-btn ${sheetCat===cat.id?'selected':''}" data-cat="${cat.id}" style="--sel-color:${cat.color};--sel-bg:${hex2rgba(cat.color,0.12)}"><div class="cat-btn-icon">${cat.icon}</div><div class="cat-btn-label">${cat.label}</div></div>`).join('');
+  grid.querySelectorAll('.cat-btn').forEach(btn => { btn.addEventListener('click', () => { sheetCat=btn.dataset.cat; buildCatGrid(); }); });
 }
 
 function openSheet() {
-  editingId = null;
-  sheetQty = 1;
-  sheetCat = 'outros';
+  editingId = null; sheetQty = 1; sheetUnit = 'un'; sheetCat = 'outros';
   document.getElementById('sheetTitle').textContent = 'Novo item ✨';
   document.getElementById('inputName').value = '';
   document.getElementById('qtyNum').textContent = '1';
+  document.getElementById('unitSelect').value = 'un';
+  document.getElementById('inputPrice').value = '';
+  document.getElementById('inputUnit').value = '';
   document.getElementById('btnSave').textContent = 'Adicionar ✓';
   buildCatGrid();
+  const freq = getFrequentes();
+  const sec = document.getElementById('frequentesSection');
+  if (freq.length > 0) {
+    sec.style.display = 'block';
+    document.getElementById('frequentesChips').innerHTML = freq.map(n => `<div class="freq-chip" data-name="${escHtml(n)}">${escHtml(n)}</div>`).join('');
+    document.querySelectorAll('.freq-chip').forEach(c => {
+      c.addEventListener('click', () => { document.getElementById('inputName').value=c.dataset.name; });
+    });
+  } else { sec.style.display='none'; }
   document.getElementById('overlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
-  setTimeout(() => document.getElementById('inputName').focus(), 300);
+  setTimeout(()=>document.getElementById('inputName').focus(),300);
 }
 
 function openEdit(id) {
-  const item = items.find(i => i.id === id);
-  if (!item) return;
-  editingId = id;
-  sheetQty = item.qty;
-  sheetCat = item.category;
+  const item = items.find(i=>i.id===id); if(!item) return;
+  editingId=id; sheetQty=item.qty||1; sheetUnit=item.unit||'un'; sheetCat=item.category;
   document.getElementById('sheetTitle').textContent = 'Editar item ✏️';
   document.getElementById('inputName').value = item.name;
   document.getElementById('qtyNum').textContent = sheetQty;
+  document.getElementById('unitSelect').value = sheetUnit;
+  document.getElementById('inputPrice').value = item.price||'';
+  document.getElementById('inputUnit').value = item.unitPrice||'';
   document.getElementById('btnSave').textContent = 'Salvar ✓';
+  document.getElementById('frequentesSection').style.display='none';
   buildCatGrid();
   document.getElementById('overlay').classList.add('show');
   document.getElementById('sheet').classList.add('show');
@@ -1042,125 +852,166 @@ function closeSheet() {
 
 async function saveItem() {
   const name = document.getElementById('inputName').value.trim();
-  if (!name) {
-    document.getElementById('inputName').focus();
-    document.getElementById('inputName').style.borderColor = '#f87171';
-    setTimeout(() => document.getElementById('inputName').style.borderColor = '', 1000);
-    return;
-  }
+  if (!name) { document.getElementById('inputName').style.borderColor='#f87171'; setTimeout(()=>document.getElementById('inputName').style.borderColor='',1000); return; }
+  const price = parseFloat(document.getElementById('inputPrice').value)||null;
+  const unitPrice = parseFloat(document.getElementById('inputUnit').value)||null;
+  const unitLabel = document.getElementById('unitSelect').value;
   if (editingId !== null) {
-    const item = items.find(i => i.id === editingId);
-    item.name = name;
-    item.qty = sheetQty;
-    item.category = sheetCat;
-    await dbPut(item);
-    showToast('Item atualizado ✓');
+    const item = items.find(i=>i.id===editingId);
+    Object.assign(item, { name, qty:sheetQty, unit:sheetUnit, category:sheetCat, price, unitPrice, unitLabel });
+    await dbPut('items',item); showToast('Item atualizado ✓');
   } else {
-    const newItem = { name, qty: sheetQty, category: sheetCat, checked: false };
-    const id = await dbAdd(newItem);
-    newItem.id = id;
-    items.push(newItem);
+    const newItem = { name, qty:sheetQty, unit:sheetUnit, category:sheetCat, checked:false, price, unitPrice, unitLabel, listId:currentListId };
+    const id = await dbAdd('items',newItem); newItem.id=id; items.push(newItem);
     showToast('Item adicionado 🎉');
   }
-  closeSheet();
-  render();
+  closeSheet(); render();
 }
 
-// ── Toast ────────────────────────────────────────────────────────────────────
-let toastTimer;
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+// ── Listas ────────────────────────────────────────────────────────────────────
+function openNewListDialog() {
+  const grid = document.getElementById('newListGrid');
+  grid.innerHTML = LIST_PRESETS.map(p=>`<div class="list-preset" data-icon="${p.icon}" data-name="${p.label}"><div class="list-preset-icon">${p.icon}</div><div class="list-preset-label">${p.label}</div></div>`).join('');
+  grid.querySelectorAll('.list-preset').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('newListName').value = btn.dataset.name;
+      btn.style.borderColor='var(--accent)';
+    });
+  });
+  document.getElementById('newListName').value = '';
+  document.getElementById('newListDialog').classList.add('show');
 }
 
-// ── Escape HTML ──────────────────────────────────────────────────────────────
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+async function createList(name, icon='🛒') {
+  const l = { name, icon };
+  const id = await dbAdd('lists', l); l.id=id; lists.push(l);
+  currentListId = id; render();
 }
 
-// ── Confete ──────────────────────────────────────────────────────────────────
+// ── Compartilhar WhatsApp ─────────────────────────────────────────────────────
+function shareWhatsApp() {
+  const listItems = items.filter(i=>i.listId===currentListId&&!i.checked);
+  if (listItems.length===0) { showToast('Nenhum item pendente para compartilhar'); return; }
+  const curList = lists.find(l=>l.id===currentListId);
+  let msg = `${curList?.icon||'🛒'} *${curList?.name||'Lista de compras'}*\n\n`;
+  const groups = {};
+  listItems.forEach(i=>{ if(!groups[i.category])groups[i.category]=[]; groups[i.category].push(i); });
+  CATS.forEach(cat=>{
+    const g=groups[cat.id]; if(!g||g.length===0) return;
+    msg+=`${cat.icon} *${cat.label}*\n`;
+    g.forEach(i=>{ msg+=`• ${i.name}`; if(i.qty>1||i.unit!=='un')msg+=` (${i.qty} ${i.unit||'un'})`; if(i.price)msg+=` — R$ ${Number(i.price).toFixed(2)}`; msg+='\n'; });
+    msg+='\n';
+  });
+  const total = listItems.filter(i=>i.price).reduce((s,i)=>s+Number(i.price)*Number(i.qty||1),0);
+  if (total>0) msg+=`💰 *Total estimado: R$ ${total.toFixed(2)}*`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+// ── TTS ───────────────────────────────────────────────────────────────────────
+function readPending() {
+  if (!('speechSynthesis' in window)) { showToast('Voz não disponível neste navegador'); return; }
+  if (ttsActive) { window.speechSynthesis.cancel(); ttsActive=false; document.getElementById('btnTTS').textContent='🔊 Ler itens pendentes'; document.getElementById('btnTTS').classList.remove('speaking'); return; }
+  const pending = items.filter(i=>i.listId===currentListId&&!i.checked);
+  if (pending.length===0) { showToast('Nenhum item pendente'); return; }
+  ttsActive = true;
+  const btn = document.getElementById('btnTTS');
+  btn.textContent='⏹ Parar leitura'; btn.classList.add('speaking');
+  const text = `Lista de compras. ${pending.length} itens. ${pending.map(i=>`${i.name}, ${i.qty>1||i.unit!=='un'?i.qty+' '+i.unit:''}`).join('. ')}.`;
+  const utt = new SpeechSynthesisUtterance(text);
+  utt.lang='pt-BR'; utt.rate=0.9;
+  utt.onend = () => { ttsActive=false; btn.textContent='🔊 Ler itens pendentes'; btn.classList.remove('speaking'); };
+  window.speechSynthesis.speak(utt);
+}
+
+// ── Confete ───────────────────────────────────────────────────────────────────
 function launchConfetti() {
-  const wrap = document.getElementById('confettiWrap');
-  const colors = ['#a78bfa','#4ade80','#f87171','#60a5fa','#fbbf24','#fb923c','#34d399','#f0abfc'];
-  wrap.innerHTML = '';
-  for (let i = 0; i < 80; i++) {
-    const p = document.createElement('div');
-    p.className = 'confetti-piece';
-    p.style.left = Math.random() * 100 + 'vw';
-    p.style.background = colors[Math.floor(Math.random() * colors.length)];
-    p.style.width = (8 + Math.random() * 8) + 'px';
-    p.style.height = (8 + Math.random() * 8) + 'px';
-    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
-    p.style.animationDuration = (1.5 + Math.random() * 2) + 's';
-    p.style.animationDelay = (Math.random() * 0.8) + 's';
+  const wrap=document.getElementById('confettiWrap');
+  const colors=['#a78bfa','#4ade80','#f87171','#60a5fa','#fbbf24','#fb923c','#34d399','#f0abfc'];
+  wrap.innerHTML='';
+  for(let i=0;i<80;i++){
+    const p=document.createElement('div'); p.className='confetti-piece';
+    p.style.left=Math.random()*100+'vw'; p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.width=(8+Math.random()*8)+'px'; p.style.height=(8+Math.random()*8)+'px';
+    p.style.borderRadius=Math.random()>0.5?'50%':'2px';
+    p.style.animationDuration=(1.5+Math.random()*2)+'s'; p.style.animationDelay=(Math.random()*0.8)+'s';
     wrap.appendChild(p);
   }
   showToast('🎉 Tudo comprado! Arrasou!');
-  setTimeout(() => { wrap.innerHTML = ''; }, 4000);
+  setTimeout(()=>{ wrap.innerHTML=''; },4000);
 }
 
-// ── Eventos ──────────────────────────────────────────────────────────────────
+// ── Toast ─────────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2500);
+}
+
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ── View switcher ─────────────────────────────────────────────────────────────
+function switchView(viewId) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById(viewId).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===viewId));
+  if(viewId==='viewMercado') renderMercado();
+}
+
+// ── Eventos ───────────────────────────────────────────────────────────────────
 document.getElementById('fab').addEventListener('click', openSheet);
 document.getElementById('overlay').addEventListener('click', closeSheet);
 
-const searchInput = document.getElementById('searchInput');
-const searchClear = document.getElementById('searchClear');
-searchInput.addEventListener('input', () => {
-  searchQuery = searchInput.value;
-  searchClear.classList.toggle('show', searchQuery.length > 0);
-  render();
-});
-searchClear.addEventListener('click', () => {
-  searchQuery = '';
-  searchInput.value = '';
-  searchClear.classList.remove('show');
-  render();
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
 
-document.getElementById('qtyMinus').addEventListener('click', () => {
-  if (sheetQty > 1) { sheetQty--; document.getElementById('qtyNum').textContent = sheetQty; }
-});
-document.getElementById('qtyPlus').addEventListener('click', () => {
-  sheetQty++; document.getElementById('qtyNum').textContent = sheetQty;
-});
+document.getElementById('btnExitMercado').addEventListener('click', () => switchView('viewLista'));
+document.getElementById('btnTTS').addEventListener('click', readPending);
+document.getElementById('btnShare').addEventListener('click', shareWhatsApp);
 
-document.getElementById('inputName').addEventListener('keydown', e => {
-  if (e.key === 'Enter') saveItem();
-});
+document.getElementById('qtyMinus').addEventListener('click', () => { if(sheetQty>1){sheetQty--;document.getElementById('qtyNum').textContent=sheetQty;} });
+document.getElementById('qtyPlus').addEventListener('click', () => { sheetQty++;document.getElementById('qtyNum').textContent=sheetQty; });
+document.getElementById('unitSelect').addEventListener('change', e => { sheetUnit=e.target.value; });
+document.getElementById('inputName').addEventListener('keydown', e => { if(e.key==='Enter')saveItem(); });
 document.getElementById('btnSave').addEventListener('click', saveItem);
 
-document.getElementById('toggleHide').addEventListener('click', function() {
-  hideChecked = !hideChecked;
-  this.classList.toggle('on', hideChecked);
-  render();
-});
+const searchInput=document.getElementById('searchInput'), searchClear=document.getElementById('searchClear');
+searchInput.addEventListener('input', () => { searchQuery=searchInput.value; searchClear.classList.toggle('show',searchQuery.length>0); render(); });
+searchClear.addEventListener('click', () => { searchQuery=''; searchInput.value=''; searchClear.classList.remove('show'); render(); });
+
+document.getElementById('toggleHide').addEventListener('click', function() { hideChecked=!hideChecked; this.classList.toggle('on',hideChecked); render(); });
 
 document.getElementById('btnClear').addEventListener('click', () => {
-  const checked = items.filter(i => i.checked);
-  if (checked.length === 0) { showToast('Nenhum item marcado'); return; }
+  const checked=items.filter(i=>i.checked&&i.listId===currentListId);
+  if(checked.length===0){showToast('Nenhum item marcado');return;}
   document.getElementById('confirmDialog').classList.add('show');
 });
-document.getElementById('confirmCancel').addEventListener('click', () => {
-  document.getElementById('confirmDialog').classList.remove('show');
-});
-document.getElementById('confirmOk').addEventListener('click', () => {
-  document.getElementById('confirmDialog').classList.remove('show');
-  clearChecked();
+document.getElementById('confirmCancel').addEventListener('click', () => document.getElementById('confirmDialog').classList.remove('show'));
+document.getElementById('confirmOk').addEventListener('click', () => { document.getElementById('confirmDialog').classList.remove('show'); clearChecked(); });
+
+document.getElementById('newListCancel').addEventListener('click', () => document.getElementById('newListDialog').classList.remove('show'));
+document.getElementById('newListOk').addEventListener('click', async () => {
+  const name = document.getElementById('newListName').value.trim();
+  if (!name) return;
+  const preset = LIST_PRESETS.find(p=>p.label===name);
+  const icon = preset ? preset.icon : '📋';
+  document.getElementById('newListDialog').classList.remove('show');
+  await createList(name, icon);
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 openDB().then(async () => {
-  items = await dbGetAll();
+  lists = await dbGetAll('lists');
+  items = await dbGetAll('items');
+  if (lists.length === 0) {
+    const id = await dbAdd('lists', { name:'Mercado', icon:'🛒' });
+    lists = [{ id, name:'Mercado', icon:'🛒' }];
+  }
+  currentListId = lists[0].id;
   render();
 });
 
-// ── Service Worker ────────────────────────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => {});
-}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>

@@ -4,19 +4,21 @@
   "description": "Lista de compras offline com categorias",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#1a1625",
+  "background_color": "#a78bfa",
   "theme_color": "#1a1625",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%231a1625'/><text y='130' x='96' text-anchor='middle' font-size='110'>🛒</text></svg>",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%231a1625'/><text y='350' x='256' text-anchor='middle' font-size='300'>🛒</text></svg>",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
