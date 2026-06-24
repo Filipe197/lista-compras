@@ -27,8 +27,10 @@
     --accent-dim: rgba(167,139,250,0.15);
 
     --cat-frutas:    #4ade80; --cat-frutas-bg:    rgba(74,222,128,0.12);
+    --cat-verduras:  #a3e635; --cat-verduras-bg:  rgba(163,230,53,0.12);
     --cat-carnes:    #f87171; --cat-carnes-bg:    rgba(248,113,113,0.12);
     --cat-laticinios:#60a5fa; --cat-laticinios-bg:rgba(96,165,250,0.12);
+    --cat-mercearia: #f59e0b; --cat-mercearia-bg: rgba(245,158,11,0.12);
     --cat-limpeza:   #c084fc; --cat-limpeza-bg:   rgba(192,132,252,0.12);
     --cat-higiene:   #34d399; --cat-higiene-bg:   rgba(52,211,153,0.12);
     --cat-bebidas:   #fbbf24; --cat-bebidas-bg:   rgba(251,191,36,0.12);
@@ -539,6 +541,83 @@
     cursor: pointer;
   }
 
+  /* ── Busca ── */
+  .search-wrap {
+    padding: 10px 16px 0;
+    flex-shrink: 0;
+  }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 99px;
+    padding: 8px 14px;
+    transition: border-color .2s;
+  }
+  .search-box:focus-within { border-color: var(--accent); }
+  .search-icon { font-size: 15px; flex-shrink: 0; }
+  .search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .search-input::placeholder { color: var(--faint); }
+  .search-clear {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    display: none;
+  }
+  .search-clear.show { display: block; }
+
+  /* ── Botão editar no item ── */
+  .btn-edit-item {
+    background: none;
+    border: none;
+    color: var(--faint);
+    font-size: 15px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    transition: color .15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+  .btn-edit-item:active { color: var(--accent); }
+
+  /* ── Confete ── */
+  .confetti-wrap {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+  }
+  .confetti-piece {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    top: -20px;
+    animation: confettiFall linear forwards;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+    80%  { opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { transition: none !important; animation: none !important; }
   }
@@ -562,6 +641,14 @@
   </div>
 
   <div class="filters" id="filters"></div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="searchInput" type="text" placeholder="Buscar item...">
+      <button class="search-clear" id="searchClear">✕</button>
+    </div>
+  </div>
 
   <div class="toggle-row">
     <span class="toggle-label">Ocultar marcados</span>
@@ -598,6 +685,9 @@
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<!-- Confete -->
+<div class="confetti-wrap" id="confettiWrap"></div>
+
 <!-- Confirm -->
 <div class="confirm" id="confirmDialog">
   <div class="confirm-box">
@@ -614,8 +704,10 @@
 // ── Categorias ──────────────────────────────────────────────────────────────
 const CATS = [
   { id: 'frutas',     label: 'Frutas',     icon: '🍎', color: '#4ade80' },
+  { id: 'verduras',   label: 'Verduras',   icon: '🥬', color: '#a3e635' },
   { id: 'carnes',     label: 'Carnes',     icon: '🥩', color: '#f87171' },
   { id: 'laticinios', label: 'Laticínios', icon: '🥛', color: '#60a5fa' },
+  { id: 'mercearia',  label: 'Mercearia',  icon: '🌾', color: '#f59e0b' },
   { id: 'limpeza',    label: 'Limpeza',    icon: '🧹', color: '#c084fc' },
   { id: 'higiene',    label: 'Higiene',    icon: '🧴', color: '#34d399' },
   { id: 'bebidas',    label: 'Bebidas',    icon: '🧃', color: '#fbbf24' },
@@ -681,9 +773,11 @@ function dbDelete(id) {
 let items = [];
 let filterCat = null;
 let hideChecked = false;
+let searchQuery = '';
 let editingId = null;
 let sheetQty = 1;
 let sheetCat = 'outros';
+let lastPendingCount = -1;
 
 // ── Render ──────────────────────────────────────────────────────────────────
 function render() {
@@ -693,9 +787,12 @@ function render() {
 
   document.getElementById('subtitle').textContent =
     total === 0 ? 'sua lista está vazia' :
-    pending === 0 ? '✅ tudo comprado!' :
+    pending === 0 ? '🎉 tudo comprado!' :
     `${pending} de ${total} itens pendentes`;
   document.getElementById('progressFill').style.width = pct + '%';
+
+  if (total > 0 && pending === 0 && lastPendingCount > 0) launchConfetti();
+  lastPendingCount = pending;
 
   renderFilters();
   renderList();
@@ -732,9 +829,11 @@ function renderFilters() {
 
 function renderList() {
   const scroll = document.getElementById('listScroll');
+  const q = searchQuery.trim().toLowerCase();
   let visible = items.filter(item => {
     if (filterCat && item.category !== filterCat) return false;
     if (hideChecked && item.checked) return false;
+    if (q && !item.name.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -793,6 +892,7 @@ function renderList() {
           <div class="item-name">${escHtml(item.name)}</div>
           ${item.qty > 1 ? `<div class="item-qty">${item.qty} unidades</div>` : ''}
         </div>
+        <button class="btn-edit-item" data-edit="${item.id}" title="Editar">✏️</button>
         <div class="item-cat-dot" style="background:${cat.color}"></div>
       </div>`;
     });
@@ -804,12 +904,25 @@ function renderList() {
   scroll.querySelectorAll('.item').forEach(el => {
     const id = Number(el.dataset.id);
 
-    // Tap = toggle check
-    el.addEventListener('click', () => toggleItem(id));
+    // Tap no item = toggle check (ignora clique no botão editar)
+    el.addEventListener('click', e => {
+      if (e.target.closest('.btn-edit-item')) return;
+      toggleItem(id);
+    });
 
-    // Long press = editar
+    // Botão editar visível
+    const editBtn = el.querySelector('.btn-edit-item');
+    if (editBtn) {
+      editBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        openEdit(id);
+      });
+    }
+
+    // Long press = editar (fallback)
     let pressTimer;
-    el.addEventListener('pointerdown', () => {
+    el.addEventListener('pointerdown', e => {
+      if (e.target.closest('.btn-edit-item')) return;
       pressTimer = setTimeout(() => openEdit(id), 500);
     });
     el.addEventListener('pointerup', () => clearTimeout(pressTimer));
@@ -968,9 +1081,44 @@ function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ── Confete ──────────────────────────────────────────────────────────────────
+function launchConfetti() {
+  const wrap = document.getElementById('confettiWrap');
+  const colors = ['#a78bfa','#4ade80','#f87171','#60a5fa','#fbbf24','#fb923c','#34d399','#f0abfc'];
+  wrap.innerHTML = '';
+  for (let i = 0; i < 80; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.width = (8 + Math.random() * 8) + 'px';
+    p.style.height = (8 + Math.random() * 8) + 'px';
+    p.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    p.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    p.style.animationDelay = (Math.random() * 0.8) + 's';
+    wrap.appendChild(p);
+  }
+  showToast('🎉 Tudo comprado! Arrasou!');
+  setTimeout(() => { wrap.innerHTML = ''; }, 4000);
+}
+
 // ── Eventos ──────────────────────────────────────────────────────────────────
 document.getElementById('fab').addEventListener('click', openSheet);
 document.getElementById('overlay').addEventListener('click', closeSheet);
+
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+searchInput.addEventListener('input', () => {
+  searchQuery = searchInput.value;
+  searchClear.classList.toggle('show', searchQuery.length > 0);
+  render();
+});
+searchClear.addEventListener('click', () => {
+  searchQuery = '';
+  searchInput.value = '';
+  searchClear.classList.remove('show');
+  render();
+});
 
 document.getElementById('qtyMinus').addEventListener('click', () => {
   if (sheetQty > 1) { sheetQty--; document.getElementById('qtyNum').textContent = sheetQty; }
