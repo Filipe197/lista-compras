@@ -170,8 +170,7 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 .item-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .item-meta { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 1px; }
 .item-price { font-size: 12px; font-weight: 800; color: var(--accent); flex-shrink: 0; }
-.btn-edit-item { background: none; border: none; color: var(--faint); font-size: 15px; cursor: pointer; padding: 4px; border-radius: 6px; transition: color .15s; flex-shrink: 0; line-height: 1; }
-.btn-edit-item:active { color: var(--accent); }
+
 .item-cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 
 /* ── Total footer ── */
@@ -195,7 +194,7 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 .mercado-title { font-size: 20px; font-weight: 900; flex: 1; }
 .mercado-sub { font-size: 13px; color: var(--muted); font-weight: 600; }
 .btn-exit { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 8px 14px; color: var(--muted); font-size: 13px; font-weight: 800; cursor: pointer; }
-.mercado-scroll { flex: 1; overflow-y: auto; padding: 12px 16px 100px; scrollbar-width: none; }
+.mercado-scroll { flex: 1; overflow-y: auto; padding: 12px 16px 16px; scrollbar-width: none; }
 .mercado-scroll::-webkit-scrollbar { display: none; }
 .mercado-item {
   display: flex; align-items: center; gap: 16px;
@@ -223,11 +222,10 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 .mercado-bar-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s; }
 .mercado-bar-label { font-size: 11px; color: var(--muted); font-weight: 600; margin-top: 4px; }
 .mercado-tts-btn {
-  position: fixed; bottom: 30px; right: 20px; left: 20px; max-width: 448px;
-  margin: 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
   background: var(--accent); border: none; border-radius: 16px; padding: 16px;
   color: #fff; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800;
-  cursor: pointer; transition: all .2s; z-index: 20;
+  cursor: pointer; transition: all .2s; flex-shrink: 0; margin: 0 16px 16px;
 }
 .mercado-tts-btn:active { transform: scale(0.97); }
 .mercado-tts-btn.speaking { background: #f87171; }
@@ -285,14 +283,14 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 }
 
 /* Preço */
-.price-row { display: flex; gap: 10px; margin-bottom: 18px; align-items: flex-end; }
-.price-input-wrap { flex: 1; }
-.price-compare { flex: 1; }
+.price-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+.price-input-wrap { width: 100%; }
+.price-compare { width: 100%; }
 .input-prefix-wrap { display: flex; align-items: center; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
-.input-prefix { padding: 12px 10px 12px 14px; font-size: 14px; font-weight: 800; color: var(--muted); }
-.input-inline { flex: 1; background: none; border: none; outline: none; padding: 12px 14px 12px 0; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; }
+.input-prefix { padding: 12px 10px 12px 14px; font-size: 14px; font-weight: 800; color: var(--muted); white-space: nowrap; }
+.input-inline { flex: 1; background: none; border: none; outline: none; padding: 12px 14px 12px 0; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 700; min-width: 0; }
 .input-inline::placeholder { color: var(--faint); }
-.price-per { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 4px; text-align: center; }
+.price-per { font-size: 11px; color: var(--muted); font-weight: 700; margin-top: 4px; }
 
 /* Frequentes */
 .frequentes-wrap { margin-bottom: 16px; }
@@ -350,6 +348,38 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 .list-preset:hover { border-color: var(--accent); background: var(--accent-dim); }
 .list-preset-icon { font-size: 24px; }
 .list-preset-label { font-size: 11px; font-weight: 800; color: var(--muted); }
+
+/* ── Onboarding ── */
+.onboarding {
+  position: fixed; inset: 0; z-index: 1000; background: var(--bg);
+  display: flex; flex-direction: column; max-width: 480px; margin: 0 auto;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.onboarding.show { opacity: 1; pointer-events: all; }
+.ob-slides { flex: 1; overflow: hidden; position: relative; }
+.ob-slide {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 40px 32px;
+  opacity: 0; transform: translateX(40px); transition: all .35s cubic-bezier(.4,0,.2,1);
+  pointer-events: none;
+}
+.ob-slide.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.ob-slide.exit { opacity: 0; transform: translateX(-40px); }
+.ob-emoji { font-size: 72px; margin-bottom: 24px; }
+.ob-title { font-size: 26px; font-weight: 900; text-align: center; margin-bottom: 12px; letter-spacing: -0.5px; }
+.ob-title span { color: var(--accent); }
+.ob-desc { font-size: 15px; color: var(--muted); text-align: center; line-height: 1.7; font-weight: 600; max-width: 280px; }
+.ob-dots { display: flex; gap: 6px; justify-content: center; padding: 16px 0; flex-shrink: 0; }
+.ob-dot { width: 8px; height: 8px; border-radius: 99px; background: var(--faint); transition: all .3s; }
+.ob-dot.active { width: 24px; background: var(--accent); }
+.ob-footer { padding: 16px 24px 40px; display: flex; gap: 12px; flex-shrink: 0; }
+.ob-skip { flex: 1; padding: 14px; background: none; border: 1.5px solid var(--border); border-radius: var(--radius-sm); color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; }
+.ob-next { flex: 2; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius-sm); color: #fff; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 800; cursor: pointer; transition: all .2s; }
+.ob-next:active { transform: scale(0.97); }
+.ob-feature { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-top: 16px; width: 100%; max-width: 300px; }
+.ob-feature-icon { font-size: 24px; flex-shrink: 0; }
+.ob-feature-text { font-size: 13px; color: var(--muted); font-weight: 600; text-align: left; line-height: 1.4; }
+.ob-feature-text strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 2px; }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
@@ -524,6 +554,72 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
   </div>
 </div>
 
+<!-- Onboarding -->
+<div class="onboarding" id="onboarding">
+  <div class="ob-slides" id="obSlides">
+
+    <div class="ob-slide active" data-slide="0">
+      <div class="ob-emoji">🛒</div>
+      <div class="ob-title">Bem-vindo às suas <span>compras</span>!</div>
+      <div class="ob-desc">Um app simples e bonito para nunca mais esquecer nada no mercado.</div>
+    </div>
+
+    <div class="ob-slide" data-slide="1">
+      <div class="ob-emoji">📋</div>
+      <div class="ob-title">Várias <span>listas</span></div>
+      <div class="ob-desc">Separe por tipo de compra — mercado, farmácia, feira e o que mais precisar.</div>
+      <div class="ob-feature">
+        <div class="ob-feature-icon">➕</div>
+        <div class="ob-feature-text"><strong>Crie uma nova lista</strong>Toque no botão + ao lado das abas</div>
+      </div>
+    </div>
+
+    <div class="ob-slide" data-slide="2">
+      <div class="ob-emoji">🏷️</div>
+      <div class="ob-title"><span>Categorias</span> com cores</div>
+      <div class="ob-desc">Frutas, carnes, limpeza e muito mais — cada categoria tem sua cor para achar rápido.</div>
+      <div class="ob-feature">
+        <div class="ob-feature-icon">✏️</div>
+        <div class="ob-feature-text"><strong>Editar um item</strong>Segure o dedo no item por 1 segundo</div>
+      </div>
+    </div>
+
+    <div class="ob-slide" data-slide="3">
+      <div class="ob-emoji">🛒</div>
+      <div class="ob-title">Modo <span>mercado</span></div>
+      <div class="ob-desc">Itens em fonte grande para marcar facilmente enquanto você caminha pelas prateleiras.</div>
+      <div class="ob-feature">
+        <div class="ob-feature-icon">🔊</div>
+        <div class="ob-feature-text"><strong>Leitura em voz alta</strong>Ouve os itens pendentes sem olhar para a tela</div>
+      </div>
+    </div>
+
+    <div class="ob-slide" data-slide="4">
+      <div class="ob-emoji">💰</div>
+      <div class="ob-title">Controle de <span>gastos</span></div>
+      <div class="ob-desc">Adicione preços aos itens e acompanhe o total estimado na hora de comprar.</div>
+      <div class="ob-feature">
+        <div class="ob-feature-icon">📤</div>
+        <div class="ob-feature-text"><strong>Compartilhar</strong>Manda a lista formatada pelo WhatsApp</div>
+      </div>
+    </div>
+
+    <div class="ob-slide" data-slide="5">
+      <div class="ob-emoji">🎉</div>
+      <div class="ob-title">Tudo <span>pronto</span>!</div>
+      <div class="ob-desc">Instale o app na sua tela inicial para acessar offline, a qualquer hora.</div>
+    </div>
+
+  </div>
+
+  <div class="ob-dots" id="obDots"></div>
+
+  <div class="ob-footer">
+    <button class="ob-skip" id="obSkip">Pular</button>
+    <button class="ob-next" id="obNext">Próximo →</button>
+  </div>
+</div>
+
 <script>
 // ── Categorias ──────────────────────────────────────────────────────────────
 const CATS = [
@@ -552,6 +648,48 @@ const hex2rgba = (hex, a) => {
   const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
   return `rgba(${r},${g},${b},${a})`;
 };
+
+// ── Onboarding ───────────────────────────────────────────────────────────────
+const OB_TOTAL = 6;
+let obCurrent = 0;
+
+function obInit() {
+  if (localStorage.getItem('ob_done')) return;
+  const el = document.getElementById('onboarding');
+  el.classList.add('show');
+  obRenderDots();
+}
+
+function obRenderDots() {
+  const dots = document.getElementById('obDots');
+  dots.innerHTML = Array.from({length: OB_TOTAL}, (_,i) =>
+    `<div class="ob-dot ${i===obCurrent?'active':''}"></div>`).join('');
+  const next = document.getElementById('obNext');
+  next.textContent = obCurrent === OB_TOTAL-1 ? 'Começar 🎉' : 'Próximo →';
+}
+
+function obGoTo(n) {
+  const slides = document.querySelectorAll('.ob-slide');
+  slides[obCurrent].classList.remove('active');
+  slides[obCurrent].classList.add('exit');
+  setTimeout(() => slides[obCurrent < n ? obCurrent : n+1]?.classList.remove('exit'), 350);
+  obCurrent = n;
+  slides[obCurrent].classList.add('active');
+  obRenderDots();
+}
+
+function obFinish() {
+  localStorage.setItem('ob_done', '1');
+  const el = document.getElementById('onboarding');
+  el.style.opacity = '0';
+  setTimeout(() => { el.style.display = 'none'; }, 300);
+}
+
+document.getElementById('obNext').addEventListener('click', () => {
+  if (obCurrent < OB_TOTAL - 1) obGoTo(obCurrent + 1);
+  else obFinish();
+});
+document.getElementById('obSkip').addEventListener('click', obFinish);
 
 // ── IndexedDB ───────────────────────────────────────────────────────────────
 let db;
@@ -698,7 +836,7 @@ function renderList() {
           ${meta ? `<div class="item-meta">${meta}</div>` : ''}
         </div>
         ${priceHtml}
-        <button class="btn-edit-item" data-edit="${item.id}" title="Editar">✏️</button>
+        <button class="btn-edit-item" data-edit="${item.id}" title="Editar" style="display:none"></button>
         <div class="item-cat-dot" style="background:${cat.color}"></div>
       </div>`;
     });
@@ -1009,6 +1147,7 @@ openDB().then(async () => {
   }
   currentListId = lists[0].id;
   render();
+  obInit();
 });
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
