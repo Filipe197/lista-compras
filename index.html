@@ -352,10 +352,9 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 /* ── Onboarding ── */
 .onboarding {
   position: fixed; inset: 0; z-index: 1000; background: var(--bg);
-  display: flex; flex-direction: column; max-width: 480px; margin: 0 auto;
-  opacity: 0; pointer-events: none; transition: opacity .3s;
+  display: none; flex-direction: column; max-width: 480px; margin: 0 auto;
 }
-.onboarding.show { opacity: 1; pointer-events: all; }
+.onboarding.show { display: flex; }
 .ob-slides { flex: 1; overflow: hidden; position: relative; }
 .ob-slide {
   position: absolute; inset: 0; display: flex; flex-direction: column;
@@ -681,8 +680,7 @@ function obGoTo(n) {
 function obFinish() {
   localStorage.setItem('ob_done', '1');
   const el = document.getElementById('onboarding');
-  el.style.opacity = '0';
-  setTimeout(() => { el.style.display = 'none'; }, 300);
+  el.classList.remove('show');
 }
 
 document.getElementById('obNext').addEventListener('click', () => {
