@@ -396,7 +396,9 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
           <div class="header-sub" id="subtitle">carregando...</div>
         </div>
         <div class="header-actions">
-          <button class="btn-icon" id="btnShare" title="Compartilhar">📤</button>
+          <button class="btn-icon" id="btnExport" title="Exportar lista">💾</button>
+          <button class="btn-icon" id="btnImport" title="Importar lista">📥</button>
+          <button class="btn-icon" id="btnShare" title="Compartilhar no WhatsApp">📤</button>
           <button class="btn-icon danger" id="btnClear" title="Limpar marcados">🧹</button>
         </div>
       </div>
@@ -522,11 +524,26 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
   <button class="btn-add" id="btnSave">Adicionar ✓</button>
 </div>
 
+<!-- Import file input -->
+<input type="file" id="importFileInput" accept=".json" style="display:none">
+
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <!-- Confete -->
 <div class="confetti-wrap" id="confettiWrap"></div>
+
+<!-- Confirm importar -->
+<div class="confirm" id="importConfirm">
+  <div class="confirm-box">
+    <div class="confirm-title">Importar lista?</div>
+    <div class="confirm-sub" id="importConfirmSub">Isso vai adicionar os itens do arquivo à sua lista atual.</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="importCancel">Cancelar</button>
+      <button class="btn-danger" style="background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.3);color:#a78bfa" id="importOk">Importar</button>
+    </div>
+  </div>
+</div>
 
 <!-- Confirm limpar -->
 <div class="confirm" id="confirmDialog">
@@ -1024,6 +1041,98 @@ async function createList(name, icon='🛒') {
   currentListId = id; render();
 }
 
+// ── Exportar JSON ─────────────────────────────────────────────────────────────
+function exportJSON() {
+  const listItems = items.filter(i => i.listId === currentListId);
+  const curList = lists.find(l => l.id === currentListId);
+  const data = {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    list: { name: curList?.name || 'Mercado', icon: curList?.icon || '🛒' },
+    items: listItems.map(i => ({
+      name: i.name,
+      category: i.category,
+      qty: i.qty,
+      unit: i.unit,
+      price: i.price,
+      unitPrice: i.unitPrice,
+      unitLabel: i.unitLabel,
+      checked: i.checked,
+    }))
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const listName = (curList?.name || 'lista').toLowerCase().replace(/\s+/g, '-');
+  a.href = url;
+  a.download = `compras-${listName}-${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`💾 Lista exportada com ${listItems.length} itens`);
+}
+
+// ── Importar JSON ─────────────────────────────────────────────────────────────
+let pendingImportData = null;
+
+function openImport() {
+  document.getElementById('importFileInput').click();
+}
+
+document.getElementById('importFileInput').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!data.items || !Array.isArray(data.items)) throw new Error('Formato inválido');
+      pendingImportData = data;
+      const sub = `Arquivo: "${data.list?.name || 'Lista'}"\n${data.items.length} itens encontrados. Serão adicionados à lista atual.`;
+      document.getElementById('importConfirmSub').textContent = sub;
+      document.getElementById('importConfirm').classList.add('show');
+    } catch {
+      showToast('❌ Arquivo inválido ou corrompido');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+async function doImport() {
+  if (!pendingImportData) return;
+  const { items: importItems } = pendingImportData;
+  let count = 0;
+  for (const i of importItems) {
+    const newItem = {
+      name: i.name || 'Item sem nome',
+      category: i.category || 'outros',
+      qty: i.qty || 1,
+      unit: i.unit || 'un',
+      price: i.price || null,
+      unitPrice: i.unitPrice || null,
+      unitLabel: i.unitLabel || null,
+      checked: false,
+      listId: currentListId,
+    };
+    const id = await dbAdd('items', newItem);
+    newItem.id = id;
+    items.push(newItem);
+    count++;
+  }
+  pendingImportData = null;
+  render();
+  showToast(`📥 ${count} itens importados!`);
+}
+
+document.getElementById('importCancel').addEventListener('click', () => {
+  pendingImportData = null;
+  document.getElementById('importConfirm').classList.remove('show');
+});
+document.getElementById('importOk').addEventListener('click', () => {
+  document.getElementById('importConfirm').classList.remove('show');
+  doImport();
+});
+
 // ── Compartilhar WhatsApp ─────────────────────────────────────────────────────
 function shareWhatsApp() {
   const listItems = items.filter(i=>i.listId===currentListId&&!i.checked);
@@ -1104,6 +1213,8 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 document.getElementById('btnExitMercado').addEventListener('click', () => switchView('viewLista'));
 document.getElementById('btnTTS').addEventListener('click', readPending);
 document.getElementById('btnShare').addEventListener('click', shareWhatsApp);
+document.getElementById('btnExport').addEventListener('click', exportJSON);
+document.getElementById('btnImport').addEventListener('click', openImport);
 
 document.getElementById('qtyMinus').addEventListener('click', () => { if(sheetQty>1){sheetQty--;document.getElementById('qtyNum').textContent=sheetQty;} });
 document.getElementById('qtyPlus').addEventListener('click', () => { sheetQty++;document.getElementById('qtyNum').textContent=sheetQty; });
