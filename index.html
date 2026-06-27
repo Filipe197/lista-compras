@@ -379,6 +379,29 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 .ob-feature-text { font-size: 13px; color: var(--muted); font-weight: 600; text-align: left; line-height: 1.4; }
 .ob-feature-text strong { color: var(--text); display: block; font-size: 14px; margin-bottom: 2px; }
 
+/* ── Modal importar ── */
+.import-modal { position: fixed; inset: 0; display: flex; align-items: flex-end; justify-content: center; z-index: 400; background: rgba(0,0,0,0.7); opacity: 0; pointer-events: none; transition: opacity .25s; }
+.import-modal.show { opacity: 1; pointer-events: all; }
+.import-box { background: var(--surface); border-radius: 24px 24px 0 0; padding: 0 20px 32px; width: 100%; max-width: 480px; max-height: 90dvh; overflow-y: auto; transform: translateY(100%); transition: transform .3s cubic-bezier(.4,0,.2,1); }
+.import-modal.show .import-box { transform: translateY(0); }
+.import-handle { width: 36px; height: 4px; background: var(--faint); border-radius: 99px; margin: 12px auto 16px; }
+.import-title { font-size: 18px; font-weight: 900; margin-bottom: 16px; }
+.import-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.import-tab { flex: 1; padding: 10px; border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--bg); color: var(--muted); font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800; cursor: pointer; transition: all .18s; }
+.import-tab.active { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+.import-panel { display: none; }
+.import-panel.active { display: block; }
+.import-textarea { width: 100%; min-height: 160px; background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--text); font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600; outline: none; resize: vertical; transition: border-color .2s; line-height: 1.6; margin-bottom: 8px; }
+.import-textarea:focus { border-color: var(--accent); }
+.import-textarea::placeholder { color: var(--faint); }
+.import-preview { margin-top: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; max-height: 150px; overflow-y: auto; display: none; }
+.import-preview.show { display: block; }
+.import-preview-title { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.import-preview-item { font-size: 13px; font-weight: 600; color: var(--text); padding: 3px 0; display: flex; align-items: center; gap: 6px; }
+.import-preview-item .dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.import-hint { font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; line-height: 1.5; }
+.import-btn-row { display: flex; gap: 10px; margin-top: 16px; }
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
@@ -531,14 +554,43 @@ html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-se
 <!-- Confete -->
 <div class="confetti-wrap" id="confettiWrap"></div>
 
-<!-- Confirm importar -->
-<div class="confirm" id="importConfirm">
-  <div class="confirm-box">
-    <div class="confirm-title">Importar lista?</div>
-    <div class="confirm-sub" id="importConfirmSub">Isso vai adicionar os itens do arquivo à sua lista atual.</div>
-    <div class="confirm-actions">
-      <button class="btn-cancel" id="importCancel">Cancelar</button>
-      <button class="btn-danger" style="background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.3);color:#a78bfa" id="importOk">Importar</button>
+<!-- Modal importar -->
+<div class="import-modal" id="importModal">
+  <div class="import-box">
+    <div class="import-handle"></div>
+    <div class="import-title">📥 Importar lista</div>
+    <div class="import-tabs">
+      <button class="import-tab active" id="tabText">📋 Colar texto</button>
+      <button class="import-tab" id="tabJSON">💾 Arquivo JSON</button>
+    </div>
+    <div class="import-panel active" id="panelText">
+      <div class="field-label">Cole aqui o texto da lista</div>
+      <textarea class="import-textarea" id="importTextarea" placeholder="Ex:
+🍎 *Frutas*
+• Laranja
+• Banana prata
+• Uva
+
+🥩 *Carnes*
+• Peito de frango (4 un)
+• Calabresa (2 un)"></textarea>
+      <div class="import-hint">💡 Funciona com listas do WhatsApp, texto simples ou um item por linha.</div>
+      <div class="import-preview" id="importPreview">
+        <div class="import-preview-title">📋 Itens detectados</div>
+        <div id="importPreviewList"></div>
+      </div>
+      <div class="import-btn-row">
+        <button class="btn-cancel" id="importTextCancel">Cancelar</button>
+        <button class="btn-add" id="importTextAnalyze" style="margin:0;flex:1">Analisar →</button>
+        <button class="btn-add" id="importTextOk" style="margin:0;flex:1;display:none">Importar ✓</button>
+      </div>
+    </div>
+    <div class="import-panel" id="panelJSON">
+      <div class="import-hint" style="margin-bottom:16px">Selecione um arquivo <strong>.json</strong> exportado anteriormente pelo app.</div>
+      <button class="btn-add" id="importJSONBtn" style="margin:0;width:100%">📂 Selecionar arquivo</button>
+      <div class="import-btn-row" style="margin-top:12px">
+        <button class="btn-cancel" id="importJSONCancel">Cancelar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1069,12 +1121,134 @@ function exportJSON() {
   showToast(`💾 Lista exportada com ${listItems.length} itens`);
 }
 
-// ── Importar JSON ─────────────────────────────────────────────────────────────
+// ── Importar ──────────────────────────────────────────────────────────────────
 let pendingImportData = null;
+let parsedTextItems = [];
 
 function openImport() {
-  document.getElementById('importFileInput').click();
+  document.getElementById('importTextarea').value = '';
+  document.getElementById('importPreview').classList.remove('show');
+  document.getElementById('importTextAnalyze').style.display = '';
+  document.getElementById('importTextOk').style.display = 'none';
+  switchImportTab('text');
+  document.getElementById('importModal').classList.add('show');
 }
+
+function closeImport() {
+  document.getElementById('importModal').classList.remove('show');
+}
+
+function switchImportTab(tab) {
+  document.getElementById('tabText').classList.toggle('active', tab==='text');
+  document.getElementById('tabJSON').classList.toggle('active', tab==='json');
+  document.getElementById('panelText').classList.toggle('active', tab==='text');
+  document.getElementById('panelJSON').classList.toggle('active', tab==='json');
+}
+
+document.getElementById('tabText').addEventListener('click', () => switchImportTab('text'));
+document.getElementById('tabJSON').addEventListener('click', () => switchImportTab('json'));
+document.getElementById('importTextCancel').addEventListener('click', closeImport);
+document.getElementById('importJSONCancel').addEventListener('click', closeImport);
+
+// ── Parser de texto ───────────────────────────────────────────────────────────
+function parseTextList(text) {
+  const catKeywords = {
+    frutas:     ['laranja','banana','maçã','uva','kiwi','melancia','abacaxi','manga','pera','limão','morango','abacate','caju','goiaba'],
+    verduras:   ['tomate','cebola','alface','coentro','cenoura','batata','beterraba','chuchu','quiabo','pimentão','alho','pepino','brócolis','espinafre','abobrinha','mandioca','inhame','jiló'],
+    carnes:     ['frango','peito','filé','costela','picanha','calabresa','linguiça','charque','toscana','patinho','alcatra','peixe','camarão','ovo','bandeja','carne','bacon'],
+    laticinios: ['leite','queijo','manteiga','requeijão','iogurte','creme','nata','mussarela','parmesão','ricota'],
+    mercearia:  ['arroz','feijão','macarrão','farinha','açúcar','sal','óleo','azeite','café','cuscuz','aveia','granola','amido','fermento','extrato','molho','vinagre','tempero','maizena'],
+    limpeza:    ['detergente','sabão','desinfetante','sanitária','esponja','vassoura','pano','rodo','alvejante','amaciante'],
+    higiene:    ['shampoo','condicionador','sabonete','pasta de dente','escova de dente','papel higiênico','guardanapo','fralda','absorvente','desodorante'],
+    bebidas:    ['suco','refrigerante','coca','água','cerveja','vinho','energético','isotônico','achocolatado'],
+    padaria:    ['pão','bolo','biscoito','bolacha','torrada','rosquinha'],
+  };
+
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  const catOf = name => {
+    const n = norm(name);
+    for (const [cat, kws] of Object.entries(catKeywords))
+      for (const kw of kws)
+        if (n.includes(norm(kw))) return cat;
+    return 'outros';
+  };
+
+  const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+  const parsed = [];
+
+  for (const line of lines) {
+    // Pula linhas que são cabeçalhos de categoria
+    if (/^\*[^*]+\*$/.test(line)) continue;
+    const lineNorm = norm(line.replace(/[•\-*·\u2022🍎🥬🥩🥛🌾🧹🧴🧃🍞🛍️]/g,'').replace(/\([^)]*\)/g,'').trim());
+    const isCatHeader = Object.values(catKeywords).some(kws =>
+      kws.some(kw => norm(kw) === lineNorm)
+    ) || ['frutas','verduras','carnes','laticinios','mercearia','limpeza','higiene','bebidas','padaria','outros'].includes(lineNorm);
+    if (isCatHeader) continue;
+
+    // Remove marcadores
+    let name = line.replace(/^[•\-*·\u2022]\s*/, '').replace(/^\d+\.\s*/, '').trim();
+    if (!name) continue;
+
+    // Extrai quantidade: (2 un), (4un), (3 kg), (1 L)
+    let qty = 1, unit = 'un';
+    const qtyMatch = name.match(/\((\d+(?:[,.]\d+)?)\s*(un|kg|g|L|ml|cx|pct|dz)?\)/i);
+    if (qtyMatch) {
+      qty = parseFloat(qtyMatch[1].replace(',','.')) || 1;
+      unit = qtyMatch[2]?.toLowerCase() || 'un';
+      name = name.replace(qtyMatch[0], '').trim();
+    }
+
+    // Remove emojis
+    name = name.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').replace(/\s+/g,' ').trim();
+    if (!name || name.length < 2) continue;
+
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+    parsed.push({ name, qty, unit, category: catOf(name) });
+  }
+
+  // Remove duplicatas
+  const seen = new Set();
+  return parsed.filter(i => { const k = norm(i.name); if (seen.has(k)) return false; seen.add(k); return true; });
+}
+
+document.getElementById('importTextAnalyze').addEventListener('click', () => {
+  const text = document.getElementById('importTextarea').value.trim();
+  if (!text) { showToast('Cole um texto primeiro'); return; }
+  parsedTextItems = parseTextList(text);
+  if (parsedTextItems.length === 0) { showToast('Nenhum item detectado'); return; }
+
+  const catMap = CATS.reduce((m,c) => { m[c.id]=c; return m; }, {});
+  document.getElementById('importPreviewList').innerHTML = parsedTextItems.map(i =>
+    `<div class="import-preview-item">
+      <div class="dot" style="background:${catMap[i.category]?.color||'#94a3b8'}"></div>
+      <span>${escHtml(i.name)}${i.qty>1||i.unit!=='un'?` <span style="color:var(--muted)">(${i.qty} ${i.unit})</span>`:''}</span>
+    </div>`
+  ).join('');
+  document.getElementById('importPreview').classList.add('show');
+  document.getElementById('importTextAnalyze').style.display = 'none';
+  document.getElementById('importTextOk').style.display = '';
+});
+
+document.getElementById('importTextOk').addEventListener('click', async () => {
+  const toImport = [...parsedTextItems];
+  parsedTextItems = [];
+  closeImport();
+  let count = 0;
+  for (const i of toImport) {
+    const newItem = { name:i.name, category:i.category, qty:i.qty, unit:i.unit, price:null, unitPrice:null, unitLabel:null, checked:false, listId:currentListId };
+    const id = await dbAdd('items', newItem);
+    newItem.id = id;
+    items.push(newItem);
+    count++;
+  }
+  render();
+  showToast(`📥 ${count} itens importados!`);
+});
+
+// Importar JSON
+document.getElementById('importJSONBtn').addEventListener('click', () => {
+  document.getElementById('importFileInput').click();
+});
 
 document.getElementById('importFileInput').addEventListener('change', e => {
   const file = e.target.files[0];
@@ -1083,53 +1257,31 @@ document.getElementById('importFileInput').addEventListener('change', e => {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (!data.items || !Array.isArray(data.items)) throw new Error('Formato inválido');
+      if (!data.items || !Array.isArray(data.items)) throw new Error('inválido');
       pendingImportData = data;
-      const sub = `Arquivo: "${data.list?.name || 'Lista'}"\n${data.items.length} itens encontrados. Serão adicionados à lista atual.`;
-      document.getElementById('importConfirmSub').textContent = sub;
-      document.getElementById('importConfirm').classList.add('show');
-    } catch {
-      showToast('❌ Arquivo inválido ou corrompido');
-    }
+      closeImport();
+      setTimeout(doImportJSON, 100);
+    } catch { showToast('❌ Arquivo inválido'); }
   };
   reader.readAsText(file);
   e.target.value = '';
 });
 
-async function doImport() {
+async function doImportJSON() {
   if (!pendingImportData) return;
-  const { items: importItems } = pendingImportData;
+  const toImport = pendingImportData.items;
+  pendingImportData = null;
   let count = 0;
-  for (const i of importItems) {
-    const newItem = {
-      name: i.name || 'Item sem nome',
-      category: i.category || 'outros',
-      qty: i.qty || 1,
-      unit: i.unit || 'un',
-      price: i.price || null,
-      unitPrice: i.unitPrice || null,
-      unitLabel: i.unitLabel || null,
-      checked: false,
-      listId: currentListId,
-    };
+  for (const i of toImport) {
+    const newItem = { name:i.name||'Item', category:i.category||'outros', qty:i.qty||1, unit:i.unit||'un', price:i.price||null, unitPrice:i.unitPrice||null, unitLabel:i.unitLabel||null, checked:false, listId:currentListId };
     const id = await dbAdd('items', newItem);
     newItem.id = id;
     items.push(newItem);
     count++;
   }
-  pendingImportData = null;
   render();
   showToast(`📥 ${count} itens importados!`);
 }
-
-document.getElementById('importCancel').addEventListener('click', () => {
-  pendingImportData = null;
-  document.getElementById('importConfirm').classList.remove('show');
-});
-document.getElementById('importOk').addEventListener('click', () => {
-  document.getElementById('importConfirm').classList.remove('show');
-  doImport();
-});
 
 // ── Compartilhar WhatsApp ─────────────────────────────────────────────────────
 function shareWhatsApp() {
