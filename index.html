@@ -934,8 +934,7 @@ function renderList() {
 
 function buildMeta(item) {
   const parts = [];
-  if (item.qty > 1 || item.unit !== 'un') parts.push(`${item.qty} ${item.unit||'un'}`);
-  else if (item.qty === 1 && item.unit === 'un') {}
+  parts.push(`${item.qty||1} ${item.unit||'un'}`);
   if (item.unitPrice) parts.push(`R$ ${Number(item.unitPrice).toFixed(2)}/${item.unitLabel||'kg'}`);
   return parts.join(' · ');
 }
